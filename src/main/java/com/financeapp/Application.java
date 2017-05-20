@@ -19,20 +19,23 @@ public class Application {
 		SpringApplication.run(Application.class, args);
 	}
 
-	@Bean
-	public CommandLineRunner demo(AccountRepository accountRepository, TransactionRepository transactionRepository) {
-		return (args) -> {
-			List<Transaction> transactionsToAdd = new ArrayList<Transaction>();
-			Transaction transaction = new Transaction();
-			transaction.setName("Test Transaction");
-			transactionsToAdd.add(transaction);
-
-			transactionRepository.save(transactionsToAdd);
-
-			Account accountToAdd = new Account("Test Account 1", "GBP", 100.0F, transactionsToAdd);
-
-			accountRepository.save(accountToAdd);
-		};
-	}
+	/**
+	 * Demo app initialization
+	 */
+//	@Bean
+//	public CommandLineRunner demo(AccountRepository accountRepository, TransactionRepository transactionRepository) {
+//		return (args) -> {
+//			List<Transaction> transactionsToAdd = new ArrayList<Transaction>();
+//			Transaction transaction = new Transaction();
+//			transaction.setName("Test Transaction");
+//			transactionsToAdd.add(transaction);
+//
+//			transactionRepository.save(transactionsToAdd);
+//
+//			Account accountToAdd = new Account("Test Account 1", "GBP", 100.0F, transactionsToAdd);
+//
+//			accountRepository.save(accountToAdd);
+//		};
+//	}
 
 }

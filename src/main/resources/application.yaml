@@ -1,2 +1,19 @@
+---
 server:
   port: 8081
+
+---
+spring.profiles: dev
+
+spring:
+  jpa:
+    database: POSTGRESQL
+    show-sql: true
+
+  datasource:
+    platform: postgres
+    url: jdbc:postgresql://localhost:5432/testdb
+
+---
+spring.profiles: tdd
+
