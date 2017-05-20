@@ -15,20 +15,11 @@ import java.util.ArrayList;
 import java.util.Properties;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("tdd")
 public class DataServiceApplicationTests {
 
-	@Autowired
-	private AccountRepository acountRepository;
-
 	@Test
-	public void testAddingAccountToDatabase() {
-		acountRepository.save(new Account("Test Account 1", "GBP", 100.00F, new ArrayList<Transaction>()));
-
-		Account retrievedAccount = acountRepository.findOne(1L);
-
-		Assert.assertEquals("The stored account should have name 'Test Account 1'", "Test Account 1", retrievedAccount.getName());
-	}
+	public void testContextLoads() {}
 
 }
