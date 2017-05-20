@@ -29,7 +29,7 @@ public class TransactionController {
 
     @RequestMapping(value = "/add", method = RequestMethod.POST)
     public ResponseEntity<String> addTransactionUsingAccountId(
-            @RequestBody TransactionDTO transactionDTO) {
+            @RequestBody TransactionDTO transactionDTO) throws Exception {
 
         Long accountId = Integer.toUnsignedLong(transactionDTO.getAccountId());
 
