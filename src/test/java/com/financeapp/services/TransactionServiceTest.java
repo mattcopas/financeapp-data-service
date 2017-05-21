@@ -38,7 +38,7 @@ public class TransactionServiceTest {
 
     @Before
     public void setup() {
-        accountToTest = new Account("Test Account", "Current", "GBP", 100.00F, new ArrayList<>());
+        accountToTest = new Account("Test Account", "Current", "GBP", 100.00F);
         accountRepository.save(accountToTest);
         accountId = accountToTest.getId();
     }

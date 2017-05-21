@@ -31,7 +31,7 @@ public class Application {
 
 		return (args) -> {
 
-			Account accountToAdd = new Account("Test Account 1", "Current", "GBP", 100.0F, new ArrayList<Transaction>());
+			Account accountToAdd = new Account("Test Account 1", "Current", "GBP", 100.0F);
 
 			accountRepository.save(accountToAdd);
 

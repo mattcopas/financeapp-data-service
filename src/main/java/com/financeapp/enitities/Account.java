@@ -1,6 +1,7 @@
 package com.financeapp.enitities;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -13,12 +14,12 @@ public class Account {
         // Intentionally left blank, required by Hibernate
     }
 
-    public Account(String name, String type, String currency, float initialBalance, List<Transaction> transactions) {
+    public Account(String name, String type, String currency, float initialBalance) {
         this.name = name;
         this.type = type;
         this.currency = currency;
         this.balance = initialBalance;
-        this.transactionList = transactions;
+        this.transactionList = new ArrayList<Transaction>();
     }
 
     @Id
