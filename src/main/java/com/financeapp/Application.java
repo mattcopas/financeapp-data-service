@@ -4,6 +4,7 @@ import com.financeapp.enitities.Account;
 import com.financeapp.enitities.Transaction;
 import com.financeapp.repositories.AccountRepository;
 import com.financeapp.repositories.TransactionRepository;
+import com.financeapp.services.TransactionService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -23,19 +24,22 @@ public class Application {
 	 * Demo app initialization
 	 */
 	@Bean
-	public CommandLineRunner demo(AccountRepository accountRepository, TransactionRepository transactionRepository) {
+	public CommandLineRunner demo(
+			AccountRepository accountRepository,
+			TransactionRepository transactionRepository,
+			TransactionService transactionService) {
+
 		return (args) -> {
-			List<Transaction> transactionsToAdd = new ArrayList<Transaction>();
-			Transaction transaction = new Transaction();
-			transaction.setName("Test Transaction");
-			transactionsToAdd.add(transaction);
 
-			transactionRepository.save(transactionsToAdd);
-
-			Account accountToAdd = new Account("Test Account 1", "Current", "GBP", 100.0F, transactionsToAdd);
+			Account accountToAdd = new Account("Test Account 1", "Current", "GBP", 100.0F, new ArrayList<Transaction>());
 
 			accountRepository.save(accountToAdd);
+
+			List<Transaction> transactionsToAdd = new ArrayList<Transaction>();
+			Transaction transaction = new Transaction("Test Transaction 1", "Income", 25.0F, accountToAdd);
+			transactionService.performAccountTransaction(transaction);
 		};
+
 	}
 
 }
