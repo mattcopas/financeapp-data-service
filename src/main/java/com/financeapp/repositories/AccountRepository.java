@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.CrossOrigin;
  * We could change the return array's name using collectionResourceRel="Some other name"
  */
 @RepositoryRestResource
-@CrossOrigin("http://localhost:3000")
 public interface AccountRepository extends PagingAndSortingRepository<Account, Long> {
 
     boolean existsById(Long id);

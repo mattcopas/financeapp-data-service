@@ -1,4 +1,4 @@
-package com.financeapp.beans;
+package com.financeapp.config;
 
 import com.financeapp.enitities.Account;
 import com.financeapp.enitities.Transaction;
@@ -14,7 +14,10 @@ public class RepositoryConfig extends RepositoryRestConfigurerAdapter {
 
     @Override
     public void configureRepositoryRestConfiguration(RepositoryRestConfiguration config) {
+
         config.exposeIdsFor(Account.class);
         config.exposeIdsFor(Transaction.class);
+
     }
+
 }
