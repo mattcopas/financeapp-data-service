@@ -32,7 +32,7 @@ public class Application {
 
 			transactionRepository.save(transactionsToAdd);
 
-			Account accountToAdd = new Account("Test Account 1", "GBP", 100.0F, transactionsToAdd);
+			Account accountToAdd = new Account("Test Account 1", "Current", "GBP", 100.0F, transactionsToAdd);
 
 			accountRepository.save(accountToAdd);
 		};

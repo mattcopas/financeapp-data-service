@@ -13,8 +13,9 @@ public class Account {
         // Intentionally left blank, required by Hibernate
     }
 
-    public Account(String name, String currency, float initialBalance, List<Transaction> transactions) {
+    public Account(String name, String type, String currency, float initialBalance, List<Transaction> transactions) {
         this.name = name;
+        this.type = type;
         this.currency = currency;
         this.balance = initialBalance;
         this.transactionList = transactions;
@@ -25,6 +26,8 @@ public class Account {
     private Long id;
 
     private String name;
+
+    private String type;
 
     private String currency;
 
@@ -47,6 +50,14 @@ public class Account {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getType() {
+        return this.type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public String getCurrency() {
