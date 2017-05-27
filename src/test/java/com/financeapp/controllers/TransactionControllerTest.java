@@ -25,7 +25,7 @@ import org.springframework.test.context.junit4.SpringRunner;
  * Created by Matt on 20/05/2017.
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("tdd")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class TransactionControllerTest {
@@ -54,7 +54,7 @@ public class TransactionControllerTest {
         invalidTransactionDTO = new TransactionDTO("Test Transaction", "Income", 100.0F, 999);
 
         ResponseEntity response = restTemplate.postForEntity(
-                "http://localhost:8081/transaction/add",
+                "/transaction/add",
                 invalidTransactionDTO,
                 String.class
         );
@@ -73,7 +73,7 @@ public class TransactionControllerTest {
 
 
         ResponseEntity response = restTemplate.postForEntity(
-                "http://localhost:8081/transaction/add",
+                "/transaction/add",
                 validTransactionDTO,
                 String.class
         );
@@ -93,7 +93,7 @@ public class TransactionControllerTest {
         ).thenReturn(false);
 
         ResponseEntity response = restTemplate.postForEntity(
-                "http://localhost:8081/transaction/add",
+                "/transaction/add",
                 invalidTransactionDTO,
                 String.class
         );
