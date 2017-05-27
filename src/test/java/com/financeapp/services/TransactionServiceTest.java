@@ -11,10 +11,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
-
-import java.util.ArrayList;
 
 /**
  * Created by Matt on 20/05/2017.
@@ -22,10 +21,11 @@ import java.util.ArrayList;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("tdd")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class TransactionServiceTest {
 
     @Autowired
-    TransactionService transactionService;
+    private TransactionService transactionService;
 
     @Autowired
     private AccountRepository accountRepository;
@@ -33,13 +33,12 @@ public class TransactionServiceTest {
     @Autowired
     private TransactionRepository transactionRepository;
 
-    Account accountToTest;
-    Long accountId;
+    private Account accountToTest;
+    private Long accountId;
 
     @Before
     public void setup() {
-        accountToTest = new Account("Test Account", "Current", "GBP", 100.00F);
-        accountRepository.save(accountToTest);
+        accountToTest = accountRepository.save(new Account("Test Account", "Current", "GBP", 100.00F));
         accountId = accountToTest.getId();
     }
 
