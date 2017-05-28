@@ -30,7 +30,7 @@ public class Account extends BaseEntity {
 
     private float balance;
 
-    @OneToMany(fetch = FetchType.EAGER)
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Transaction> transactionList;
 
     public String getName() {

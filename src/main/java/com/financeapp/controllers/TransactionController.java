@@ -6,6 +6,8 @@ import com.financeapp.enitities.Transaction;
 import com.financeapp.repositories.AccountRepository;
 import com.financeapp.repositories.TransactionRepository;
 import com.financeapp.services.TransactionService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +19,8 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/transaction")
 public class TransactionController {
+
+    private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
     private AccountRepository accountRepository;
@@ -37,6 +41,7 @@ public class TransactionController {
 
             String responseBody = "Account with id " + accountId + " not found";
             ResponseEntity<String> response = new ResponseEntity<>(responseBody, HttpStatus.BAD_REQUEST);
+            LOGGER.error("Account with id " + accountId + " not found");
             return response;
         }
 
@@ -50,10 +55,31 @@ public class TransactionController {
         );
 
         if(transactionService.performAccountTransaction(transaction)) {
+            LOGGER.info("Transaction with id " + transaction.getId() + " successfully added");
             return new ResponseEntity<>(HttpStatus.ACCEPTED);
         }
 
+        LOGGER.error("Internal server error when adding transaction " + transaction.getId());
         return new ResponseEntity<>("There was a problem adding the transaction", HttpStatus.INTERNAL_SERVER_ERROR);
 
+    }
+
+    @RequestMapping(value = "/rollback/{transactionId}", method = RequestMethod.POST)
+    public ResponseEntity<String> rollbackTransactionByTransactionId(@PathVariable int transactionId) {
+
+        Transaction transaction = transactionRepository.findOne((long) transactionId);
+
+        if(transaction == null) {
+            LOGGER.error("Transaction not found with id " + transactionId);
+            return new ResponseEntity<>("The transaction with id " + transactionId + " was not found", HttpStatus.NOT_FOUND);
+        }
+
+        if(transactionService.removeAccountTransaction(transactionRepository.findOne((long) transactionId))) {
+            LOGGER.info("Transaction " + transactionId + " rolled back successfully");
+            return new ResponseEntity<>("Transaction removed", HttpStatus.ACCEPTED);
+        }
+
+        LOGGER.error("Internal server error when rolling back transaction with id " + transactionId);
+        return new ResponseEntity<>("An error occurred when removing the transaction " + transactionId, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

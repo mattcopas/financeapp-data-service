@@ -4,6 +4,7 @@ import com.financeapp.DTOs.TransactionDTO;
 import com.financeapp.enitities.Account;
 import com.financeapp.enitities.Transaction;
 import com.financeapp.repositories.AccountRepository;
+import com.financeapp.repositories.TransactionRepository;
 import com.financeapp.services.TransactionService;
 import org.junit.Assert;
 import org.junit.Before;
@@ -39,6 +40,9 @@ public class TransactionControllerTest {
     @MockBean
     private TransactionService transactionService;
 
+    @MockBean
+    private TransactionRepository transactionRepository;
+
     private Account account;
     private TransactionDTO invalidTransactionDTO;
     private TransactionDTO validTransactionDTO;
@@ -49,7 +53,7 @@ public class TransactionControllerTest {
     }
 
     @Test
-    public void testReturns400IfNonExistentAccountIdIsPassed() {
+    public void testAddingTransactionReturns400IfNonExistentAccountIdIsPassed() {
 
         invalidTransactionDTO = new TransactionDTO("Test Transaction", "Income", 100.0F, 999);
 
@@ -64,7 +68,7 @@ public class TransactionControllerTest {
     }
 
     @Test
-    public void shouldReturnAcceptedResponseCodeIfAValidAccountIdIsPassed() throws Exception {
+    public void addingATransactionShouldReturnAcceptedResponseCodeIfAValidAccountIdIsPassed() throws Exception {
 
         int id = account.getId().intValue();
         validTransactionDTO = new TransactionDTO("Test Transaction", "Income", 100.0F, id);
@@ -82,7 +86,7 @@ public class TransactionControllerTest {
     }
 
     @Test
-    public void anExceptionShouldBeThrownIfTheAccountTransactionFails() throws Exception {
+    public void anExceptionShouldBeThrownIfTheAccountTransactionFailsWhenAddingATransaction() throws Exception {
         int id = account.getId().intValue();
         invalidTransactionDTO = new TransactionDTO("Invalid Transaction", "InvalidType", 100.0F, id);
 
@@ -101,6 +105,64 @@ public class TransactionControllerTest {
         Assert.assertEquals("The response code should be an internal server error", HttpStatus.INTERNAL_SERVER_ERROR,
                 response.getStatusCode());
 
+    }
+
+    @Test
+    public void a404ResponseCodeShouldBeReturnedIfANonExistentTransactionIdIsPassedWhenRemovingATransaction() {
+        int id = account.getId().intValue();
+        validTransactionDTO = new TransactionDTO("Test Transaction", "Income", 100.0F, id);
+
+        ResponseEntity removeTransactionResponse = restTemplate.postForEntity(
+                "/transaction/rollback/999",
+                null,
+                String.class
+        );
+
+        Assert.assertEquals("The response code should be a 404 if the transaction is not found",
+                HttpStatus.NOT_FOUND, removeTransactionResponse.getStatusCode());
+    }
+
+    @Test
+    public void shouldReturnA202ResponseCodeIfTheTransactionIsRemovedSuccessfully() {
+        int id = account.getId().intValue();
+        validTransactionDTO = new TransactionDTO("Test Transaction", "Income", 100.0F, id);
+
+        Mockito.when(
+                this.transactionService.removeAccountTransaction(Matchers.any())
+        ).thenReturn(true);
+
+        Mockito.when(
+                this.transactionRepository.findOne(Matchers.any())
+        ).thenReturn(new Transaction());
+
+        ResponseEntity removeTransactionResponse = restTemplate.postForEntity(
+                "/transaction/rollback/1",
+                null,
+                String.class
+        );
+
+        Assert.assertEquals("Should return a 202 Accepted response code when removing a transaction",
+                HttpStatus.ACCEPTED, removeTransactionResponse.getStatusCode());
+    }
+
+    @Test
+    public void shouldReturnA500ErrorIfRemovingTheTransactionFails() {
+        Mockito.when(
+                this.transactionService.removeAccountTransaction(Matchers.any())
+        ).thenReturn(false);
+
+        Mockito.when(
+                this.transactionRepository.findOne(Matchers.any())
+        ).thenReturn(new Transaction());
+
+        ResponseEntity removeTransactionResponse = restTemplate.postForEntity(
+                "/transaction/rollback/1",
+                null,
+                String.class
+        );
+
+        Assert.assertEquals("Should return a 500 error if the transaction fails to rollback",
+                HttpStatus.INTERNAL_SERVER_ERROR, removeTransactionResponse.getStatusCode());
     }
 
 }
