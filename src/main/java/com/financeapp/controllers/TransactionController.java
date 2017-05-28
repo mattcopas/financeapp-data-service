@@ -56,4 +56,20 @@ public class TransactionController {
         return new ResponseEntity<>("There was a problem adding the transaction", HttpStatus.INTERNAL_SERVER_ERROR);
 
     }
+
+    @RequestMapping(value = "/rollback/{transactionId}", method = RequestMethod.POST)
+    public ResponseEntity<String> rollbackTransactionByTransactionId(@PathVariable int transactionId) {
+
+        Transaction transaction = transactionRepository.findOne((long) transactionId);
+
+        if(transaction == null) {
+            return new ResponseEntity<>("The transaction with id " + transactionId + " was not found", HttpStatus.NOT_FOUND);
+        }
+
+        if(transactionService.removeAccountTransaction(transactionRepository.findOne((long) transactionId))) {
+            return new ResponseEntity<>("Transaction removed", HttpStatus.ACCEPTED);
+        }
+
+        return new ResponseEntity<>("An error occured when removing the transaction " + transactionId, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

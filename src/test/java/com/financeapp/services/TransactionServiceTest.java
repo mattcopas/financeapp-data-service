@@ -36,9 +36,11 @@ public class TransactionServiceTest {
     private Account accountToTest;
     private Long accountId;
 
+    private final float INITIAL_ACCOUNT_BALANCE = 100.0F;
+
     @Before
     public void setup() {
-        accountToTest = accountRepository.save(new Account("Test Account", "Current", "GBP", 100.00F));
+        accountToTest = accountRepository.save(new Account("Test Account", "Current", "GBP", INITIAL_ACCOUNT_BALANCE));
         accountId = accountToTest.getId();
     }
 
@@ -97,5 +99,40 @@ public class TransactionServiceTest {
         transactionService.performAccountTransaction(invalidTransaction);
 
         Assert.assertEquals("The account balance should remain the same", 100.00F, accountRepository.findOne(accountId).getBalance(), 0);
+    }
+
+    @Test
+    public void removingAnIncomeTransactionShouldRemoveTheTransactionFromTheDatabase() throws Exception {
+        Transaction transactionToRemove = new Transaction("Test Transaction To Remove", "Income", 50.0F, accountToTest);
+        transactionService.performAccountTransaction(transactionToRemove);
+
+        transactionService.removeAccountTransaction(transactionToRemove);
+
+        Assert.assertEquals("The transaction list size should now be 0",
+                0, accountRepository.findOne(accountId).getTransactionList().size());
+    }
+
+    @Test
+    public void rollingBackAnIncomeTransactionShouldDecreaseTheAccountBalance() throws Exception {
+        Transaction transactionToRemove = new Transaction("Test Transaction To Remove", "Income", 50.0F, accountToTest);
+        transactionService.performAccountTransaction(transactionToRemove);
+
+        transactionService.removeAccountTransaction(transactionToRemove);
+
+        Account updatedAccount = accountRepository.findOne(accountToTest.getId());
+
+        Assert.assertEquals("The account balance should decrease to 100.0F", 100.0F, updatedAccount.getBalance(), 0);
+    }
+
+    @Test
+    public void rollingBackAnExpenseTransactionShouldDecreaseTheAccountBalance() throws Exception {
+        Transaction transactionToRemove = new Transaction("Test Transaction To Remove", "Expense", 50.0F, accountToTest);
+        transactionService.performAccountTransaction(transactionToRemove);
+
+        transactionService.removeAccountTransaction(transactionToRemove);
+
+        Account updatedAccount = accountRepository.findOne(accountToTest.getId());
+
+        Assert.assertEquals("The account balance should decrease to 100.0F", 100.0F, updatedAccount.getBalance(), 0);
     }
 }

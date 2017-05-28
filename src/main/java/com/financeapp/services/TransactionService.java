@@ -29,7 +29,7 @@ public class TransactionService {
 
         Account accountToUpdate = transaction.getAccount();
 
-        if( ! this.updateAccontBalance(accountToUpdate, transaction)) {
+        if( ! this.updateAccontBalance(accountToUpdate, transaction, false)) {
             throw new InvalidTransactionTypeException("The transaction type " + transaction.getType() + " is not valid");
         }
 
@@ -40,16 +40,40 @@ public class TransactionService {
         return true;
     }
 
-    private boolean updateAccontBalance(Account accountToUpdate, Transaction transaction) {
+    @Transactional
+    public boolean removeAccountTransaction(Transaction transaction) {
+
+        Account accountToRollback = transaction.getAccount();
+
+        this.updateAccontBalance(accountToRollback, transaction, true);
+
+        this.removeTransactionFromTransactionList(accountToRollback, transaction);
+
+        accountRepository.save(accountToRollback);
+
+        transactionRepository.delete(transaction.getId());
+
+        return true;
+    }
+
+    private boolean updateAccontBalance(Account accountToUpdate, Transaction transaction, boolean rollback) {
         float newAccountBalance;
 
         switch(transaction.getType()) {
             case "Income":
-                newAccountBalance = accountToUpdate.getBalance() + transaction.getAmount();
+                if(rollback) {
+                    newAccountBalance = accountToUpdate.getBalance() - transaction.getAmount();
+                } else {
+                    newAccountBalance = accountToUpdate.getBalance() + transaction.getAmount();
+                }
                 accountToUpdate.setBalance(newAccountBalance);
                 break;
             case "Expense":
-                newAccountBalance = accountToUpdate.getBalance() - transaction.getAmount();
+                if(rollback) {
+                    newAccountBalance = accountToUpdate.getBalance() + transaction.getAmount();
+                } else {
+                    newAccountBalance = accountToUpdate.getBalance() - transaction.getAmount();
+                }
                 accountToUpdate.setBalance(newAccountBalance);
                 break;
             default:
@@ -58,7 +82,11 @@ public class TransactionService {
         return true;
     }
 
-    public void addTransactionToAccountTransactionsList(Account accountToUpdate, Transaction transaction) {
+    private void addTransactionToAccountTransactionsList(Account accountToUpdate, Transaction transaction) {
         accountToUpdate.getTransactionList().add(transaction);
+    }
+
+    private void removeTransactionFromTransactionList(Account accountToRollback, Transaction transaction) {
+        accountToRollback.getTransactionList().remove(transaction);
     }
 }
