@@ -1,6 +1,11 @@
 language: java
 jdk: oraclejdk8
 
+sudo: required
+
+services:
+  - docker
+
 after_success:
   - if [  "$TRAVIS_BRANCH" == "develop" ]; then
     docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
