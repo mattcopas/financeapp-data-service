@@ -23,7 +23,7 @@ apply plugin: 'org.springframework.boot'
 apply plugin: 'docker'
 apply plugin: 'com.palantir.jacoco-full-report'
 
-group = mattcopas
+group = 'mattcopas'
 version = '0.0.5'
 sourceCompatibility = 1.8
 
