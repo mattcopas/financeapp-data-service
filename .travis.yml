@@ -9,7 +9,7 @@ services:
 after_success:
   - echo "Travis branch"
   - echo "$TRAVIS_BRANCH"
-  - if [  "$TRAVIS_BRANCH" == "develop" ]; then
+  - if [  "$TRAVIS_BRANCH" == "develop" && "$TRAVIS_PULL_REQUEST" = "false" ]; then
     docker login -u="mattcopas" -p="$DOCKER_PASSWORD";
     gradle buildDocker;
     docker push mattcopas/financeapp-data-service;
