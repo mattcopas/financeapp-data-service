@@ -1,6 +1,19 @@
 language: java
 jdk: oraclejdk8
 
+sudo: required
+
+services:
+  - docker
+
+after_success:
+  - if [  "$TRAVIS_BRANCH" == "develop" ]; then
+    docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
+    cd src/main/Dockerfile;
+    docker build -t mattcopas/financeapp-data-service:latest;
+    docker push mattcopas/financeapp-data-service;
+    fi
+
 notifications:
   email:
     on_success: never
