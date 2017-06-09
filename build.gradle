@@ -31,10 +31,22 @@ repositories {
 	mavenCentral()
 }
 
+docker {
+	baseImage "frolvlad/alpine-oraclejdk8:slim"
+	maintainer "Matt Copas"
+}
+
 task buildDocker(type: Docker, dependsOn: build) {
 	push = false
 	applicationName = jar.baseName
-	dockerfile = file('src/main/docker/Dockerfile')
+
+	volume("/tmp")
+	addFile(jar.baseName, "app.jar")
+	runCommand("sh -c 'touch /app.jar'")
+	setEnvironment("JAVA_OPTS", "")
+	exposePort(8081)
+	entryPoint([ "sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -Dspring.profiles.active=docker -jar /app.jar" ])
+
 	doFirst {
 		copy {
 			from jar

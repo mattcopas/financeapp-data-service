@@ -7,8 +7,10 @@ services:
   - docker
 
 after_success:
-  - if [  "$TRAVIS_BRANCH" == "develop" ]; then
-    docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
+  - echo "Travis branch"
+  - echo "$TRAVIS_BRANCH"
+  - if [  "$TRAVIS_BRANCH" == "develop" && "$TRAVIS_PULL_REQUEST" = "false" ]; then
+    docker login -u="mattcopas" -p="$DOCKER_PASSWORD";
     gradle buildDocker;
     docker push mattcopas/financeapp-data-service;
     fi
