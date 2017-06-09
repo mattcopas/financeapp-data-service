@@ -3,10 +3,10 @@ jdk: oraclejdk8
 
 after_success:
   - if [  "$TRAVIS_BRANCH" == "develop" ]; then
-  docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
-  cd src/main/Dockerfile;
-  docker build -t mattcopas/financeapp-data-service:latest;
-  docker push mattcopas/financeapp-data-service
+    docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
+    cd src/main/Dockerfile;
+    docker build -t mattcopas/financeapp-data-service:latest;
+    docker push mattcopas/financeapp-data-service
 
 notifications:
   email:
