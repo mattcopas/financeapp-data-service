@@ -23,7 +23,7 @@ apply plugin: 'org.springframework.boot'
 apply plugin: 'docker'
 apply plugin: 'com.palantir.jacoco-full-report'
 
-version = '0.0.1-SNAPSHOT'
+version = '0.0.5'
 sourceCompatibility = 1.8
 
 repositories {
@@ -34,6 +34,7 @@ task buildDocker(type: Docker, dependsOn: build) {
 	push = false
 	applicationName = jar.baseName
 	dockerfile = file('src/main/docker/Dockerfile')
+	tag = "mattcopas/${applicationName}:${project.version}"
 	doFirst {
 		copy {
 			from jar
