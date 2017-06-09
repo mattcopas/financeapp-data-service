@@ -11,7 +11,7 @@ after_success:
     docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
     cd src/main/Dockerfile;
     docker build -t mattcopas/financeapp-data-service:latest;
-    docker push mattcopas/financeapp-data-service
+    docker push mattcopas/financeapp-data-service;
     fi
 
 notifications:
