@@ -41,7 +41,7 @@ task buildDocker(type: Docker, dependsOn: build) {
 	applicationName = jar.baseName
 
 	volume("/tmp")
-	addFile(jar.baseName, "app.jar")
+	addFile("${jar.baseName}-${project.version}.jar", "app.jar")
 	runCommand("sh -c 'touch /app.jar'")
 	exposePort(8081)
 	entryPoint([ "sh", "-c", "java -Djava.security.egd=file:/dev/./urandom -Dspring.profiles.active=docker -jar /app.jar" ])
