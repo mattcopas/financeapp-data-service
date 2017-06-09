@@ -7,6 +7,8 @@ services:
   - docker
 
 after_success:
+  - echo "Travis branch"
+  - echo "$TRAVIS_BRANCH"
   - if [  "$TRAVIS_BRANCH" == "develop" ]; then
     docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
     gradle buildDocker;
