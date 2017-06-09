@@ -43,9 +43,8 @@ task buildDocker(type: Docker, dependsOn: build) {
 	volume("/tmp")
 	addFile(jar.baseName, "app.jar")
 	runCommand("sh -c 'touch /app.jar'")
-	setEnvironment("JAVA_OPTS", "")
 	exposePort(8081)
-	entryPoint([ "sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -Dspring.profiles.active=docker -jar /app.jar" ])
+	entryPoint([ "sh", "-c", "java -Djava.security.egd=file:/dev/./urandom -Dspring.profiles.active=docker -jar /app.jar" ])
 
 	doFirst {
 		copy {
