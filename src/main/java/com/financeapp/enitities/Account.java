@@ -24,6 +24,7 @@ public class Account extends BaseEntity {
 
     private String name;
 
+    // TODO Convert to enum
     private String type;
 
     private String currency;
