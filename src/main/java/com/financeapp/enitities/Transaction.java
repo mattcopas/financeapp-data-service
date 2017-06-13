@@ -21,6 +21,7 @@ public class Transaction extends BaseEntity {
 
     private String name;
 
+    // TODO Convert to enum
     private String type;
 
     private float amount;
