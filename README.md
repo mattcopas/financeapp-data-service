@@ -9,6 +9,13 @@ This project is currently a Work In Progress
 
 ### How do I get set up? ###
 
+## Authentication ##
+Send a request:
+curl -X POST
+    --user 'financeapp:secret'
+    -d 'grant_type=password&username=test@test.com&password=password'
+    http://localhost:8081/oauth/token
+
 * Summary of set up
 * Configuration
 * Dependencies
