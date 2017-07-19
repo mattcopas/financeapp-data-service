@@ -48,3 +48,5 @@ spring:
 ---
 spring.profiles: tdd
 
+security:
+  ignored: /**
