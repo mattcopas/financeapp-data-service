@@ -51,11 +51,6 @@ public class Application {
 			Transaction transaction = new Transaction("Test Transaction 1", "Income", 25.0F, accountToAdd);
 			transactionService.performAccountTransaction(transaction);
 
-			List<User> users = userRepository.findAll();
-			for(User user : users) {
-				System.out.println(user.getUsername());
-				System.out.println(user.getPassword());
-			}
 		};
 
 	}
