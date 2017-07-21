@@ -2,7 +2,7 @@
 server:
   port: 8081
 
-allowedOrigin: ''
+allowedOrigin: 'http://localhost:3000'
 
 ---
 spring.profiles: docker
