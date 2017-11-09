@@ -10,9 +10,9 @@ after_success:
   - if [  "$TRAVIS_BRANCH" == "develop" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
     docker login -u="mattcopas" -p="$DOCKER_PASSWORD";
     gradle incrementPatchVersion;
-    git add build.gradle
-    git commit -m "Travis Version Increment [ci skip]"
-    git push origin develop
+    git add build.gradle;
+    git commit -m "Travis Version Increment [ci skip]";
+    git push origin develop;
     gradle buildDocker;
     docker push mattcopas/financeapp-data-service;
     fi
