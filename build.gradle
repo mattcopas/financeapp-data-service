@@ -54,6 +54,16 @@ task buildDocker(type: Docker, dependsOn: build) {
 	}
 }
 
+task incrementPatchVersion << {
+	def version = buildFile.getText().find(version)
+	String minorString = version.substring(version.lastIndexOf('.')+1, version.length())
+	int newPatch = minorString.toInteger()+1
+	String majorAndMinor = version.substring(0,3)
+	String newVersion = majorAndMinor + '.' + newPatch
+	String newBuildFileText = buildFile.getText().replaceFirst("version = '$version'","version = '" + newVersion + "'")
+	buildFile.setText(newBuildFileText)
+}
+
 bootRun {
 	systemProperty('spring.profiles.active', 'tdd	')
 }
