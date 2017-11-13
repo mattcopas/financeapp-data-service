@@ -8,14 +8,20 @@ services:
 
 after_success:
   - if [  "$TRAVIS_BRANCH" == "develop" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
-    docker login -u="mattcopas" -p="$DOCKER_PASSWORD" &&
-    ./gradlew incrementPatchVersion &&
-    git add build.gradle &&
-    git commit -m "Travis Version Increment [ci skip]" &&
-    git push https://mattcopas:$GITHUB_TOKEN@github.com/mattcopas/financeapp-data-service.git HEAD:develop &&
-    gradle buildDocker &&
-    docker push mattcopas/financeapp-data-service &&
-    fi
+      docker login -u="mattcopas" -p="$DOCKER_PASSWORD";
+      fi
+  - if [  "$TRAVIS_BRANCH" == "develop" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+      ./gradlew incrementPatchVersion; fi
+  - if [  "$TRAVIS_BRANCH" == "develop" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+      git add build.gradle; fi
+  - if [  "$TRAVIS_BRANCH" == "develop" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+      git commit -m "Travis Version Increment [ci skip]"; fi
+    - if [  "$TRAVIS_BRANCH" == "develop" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+      git push https://mattcopas:$GITHUB_TOKEN@github.com/mattcopas/financeapp-data-service.git HEAD:develop; fi
+    - if [  "$TRAVIS_BRANCH" == "develop" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+      gradle buildDocker; fi
+    - if [  "$TRAVIS_BRANCH" == "develop" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+      docker push mattcopas/financeapp-data-service; fi
 
 notifications:
   email:
