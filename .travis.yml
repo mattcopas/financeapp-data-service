@@ -8,13 +8,13 @@ services:
 
 after_success:
   - if [  "$TRAVIS_BRANCH" == "develop" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
-    docker login -u="mattcopas" -p="$DOCKER_PASSWORD";
+    docker login -u="mattcopas" -p="$DOCKER_PASSWORD" &&
     ./gradlew incrementPatchVersion &&
-    git add build.gradle;
-    git commit -m "Travis Version Increment [ci skip]";
+    git add build.gradle &&
+    git commit -m "Travis Version Increment [ci skip]" &&
     git push https://mattcopas:$GITHUB_TOKEN@github.com/mattcopas/financeapp-data-service.git HEAD:develop &&
-    gradle buildDocker;
-    docker push mattcopas/financeapp-data-service;
+    gradle buildDocker &&
+    docker push mattcopas/financeapp-data-service &&
     fi
 
 notifications:
