@@ -16,12 +16,12 @@ after_success:
       git add build.gradle; fi
   - if [  "$TRAVIS_BRANCH" == "develop" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
       git commit -m "Travis Version Increment [ci skip]"; fi
-    - if [  "$TRAVIS_BRANCH" == "develop" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
-      git push https://mattcopas:$GITHUB_TOKEN@github.com/mattcopas/financeapp-data-service.git HEAD:develop; fi
-    - if [  "$TRAVIS_BRANCH" == "develop" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
-      gradle buildDocker; fi
-    - if [  "$TRAVIS_BRANCH" == "develop" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
-      docker push mattcopas/financeapp-data-service; fi
+  - if [  "$TRAVIS_BRANCH" == "develop" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+    git push https://mattcopas:$GITHUB_TOKEN@github.com/mattcopas/financeapp-data-service.git HEAD:develop; fi
+  - if [  "$TRAVIS_BRANCH" == "develop" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+    gradle buildDocker; fi
+  - if [  "$TRAVIS_BRANCH" == "develop" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+    docker push mattcopas/financeapp-data-service; fi
 
 notifications:
   email:
