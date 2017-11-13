@@ -12,7 +12,7 @@ after_success:
     ./gradlew incrementPatchVersion &&
     git add build.gradle;
     git commit -m "Travis Version Increment [ci skip]";
-    git push origin develop;
+    git push https://mattcopas:$GITHUB_TOKEN@github.com/mattcopas/financeapp-data-service.git &&
     gradle buildDocker;
     docker push mattcopas/financeapp-data-service;
     fi
