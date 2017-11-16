@@ -11,7 +11,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
 
 /**
  * Created by Matt on 20/05/2017.
@@ -33,7 +36,8 @@ public class TransactionController {
 
     @RequestMapping(value = "/add", method = RequestMethod.POST)
     public ResponseEntity<String> addTransactionUsingAccountId(
-            @RequestBody TransactionDTO transactionDTO) throws Exception {
+            @RequestBody TransactionDTO transactionDTO,
+            Principal principal) throws Exception {
 
         Long accountId = Integer.toUnsignedLong(transactionDTO.getAccountId());
 

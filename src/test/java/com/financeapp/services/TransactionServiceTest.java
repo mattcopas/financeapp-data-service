@@ -1,10 +1,13 @@
 package com.financeapp.services;
 
+import com.financeapp.BaseTest;
 import com.financeapp.enitities.Account;
 import com.financeapp.enitities.Transaction;
+import com.financeapp.enitities.User;
 import com.financeapp.exception.InvalidTransactionTypeException;
 import com.financeapp.repositories.AccountRepository;
 import com.financeapp.repositories.TransactionRepository;
+import com.financeapp.repositories.UserRepository;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,17 +21,16 @@ import org.springframework.test.context.junit4.SpringRunner;
 /**
  * Created by Matt on 20/05/2017.
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("tdd")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class TransactionServiceTest {
+public class TransactionServiceTest extends BaseTest {
 
     @Autowired
     private TransactionService transactionService;
 
     @Autowired
     private AccountRepository accountRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private TransactionRepository transactionRepository;
@@ -40,7 +42,8 @@ public class TransactionServiceTest {
 
     @Before
     public void setup() {
-        accountToTest = accountRepository.save(new Account("Test Account", "Current", "GBP", INITIAL_ACCOUNT_BALANCE));
+        User savedUser = userRepository.save(new User("username", "password"));
+        accountToTest = accountRepository.save(new Account("Test Account", "Current", "GBP", INITIAL_ACCOUNT_BALANCE, savedUser));
         accountId = accountToTest.getId();
     }
 

@@ -40,10 +40,10 @@ public class Application {
 			User userToAdd = new User(
 					"test@test.com",
 					"$2a$06$vObjHaxHZA7vuB4TH.MTH.xYRyKJj.KbrbP88aI3wR2vVEoYgiuam");
-			userRepository.save(userToAdd);
+			User savedUser = userRepository.save(userToAdd);
 
 
-			Account accountToAdd = new Account("Test Account 1", "Current", "GBP", 100.0F);
+			Account accountToAdd = new Account("Test Account 1", "Current", "GBP", 100.0F, savedUser);
 
 			accountRepository.save(accountToAdd);
 

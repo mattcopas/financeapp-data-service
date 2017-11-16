@@ -1,5 +1,7 @@
 package com.financeapp.enitities;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,13 +16,18 @@ public class Account extends BaseEntity {
         // Intentionally left blank, required by Hibernate
     }
 
-    public Account(String name, String type, String currency, float initialBalance) {
+    public Account(String name, String type, String currency, float initialBalance, User user) {
         this.name = name;
         this.type = type;
         this.currency = currency;
         this.balance = initialBalance;
         this.transactionList = new ArrayList<Transaction>();
+        this.user = user;
     }
+
+    @ManyToOne
+    @JsonManagedReference
+    private User user;
 
     private String name;
 
@@ -73,4 +80,9 @@ public class Account extends BaseEntity {
     public void setTransactionList(List<Transaction> transactionList) {
         this.transactionList = transactionList;
     }
+
+    public User getUser() {
+        return user;
+    }
+
 }

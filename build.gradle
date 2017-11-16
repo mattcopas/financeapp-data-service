@@ -65,7 +65,7 @@ task incrementPatchVersion << {
 }
 
 bootRun {
-	systemProperty('spring.profiles.active', 'tdd	')
+	systemProperty('spring.profiles.active', 'tdd')
 }
 
 jacocoTestReport {
