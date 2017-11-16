@@ -7,6 +7,7 @@ import com.financeapp.enitities.User;
 import com.financeapp.exception.AccountNotFoundException;
 import com.financeapp.exception.EntityDoesNotBelongToUserException;
 import com.financeapp.exception.InvalidTransactionTypeException;
+import com.financeapp.exception.TransactionNotFoundException;
 import com.financeapp.repositories.AccountRepository;
 import com.financeapp.repositories.TransactionRepository;
 import com.financeapp.repositories.UserRepository;
@@ -70,7 +71,7 @@ public class TransactionService {
 
         LOGGER.info("Transaction " + savedTransaction.getId() + " saved successfully");
 
-        if( ! this.updateAccontBalance(account, transaction, false)) {
+        if( ! this.updateAccountBalance(account, transaction, false)) {
             InvalidTransactionTypeException invalidTransactionTypeException =
                     new InvalidTransactionTypeException("The transaction type " + transactionDTO.getType() + " is not valid");
             LOGGER.error("Invalid transaction type exception thrown " + invalidTransactionTypeException.getMessage());
@@ -89,11 +90,28 @@ public class TransactionService {
     }
 
     @Transactional
-    public boolean removeAccountTransaction(Transaction transaction) {
+    public boolean removeAccountTransaction(Long transactionId, Principal principal) {
+
+        Transaction transaction = transactionRepository.findOne(transactionId);
+
+        if(transaction == null) {
+            throw new TransactionNotFoundException(
+                    "Transaction with id " + transactionId + " not found"
+            );
+        }
 
         Account accountToRollback = transaction.getAccount();
 
-        this.updateAccontBalance(accountToRollback, transaction, true);
+        User user = userRepository.findOneByUsername(principal.getName());
+
+        if( ! accountService.accountBelongsToUser(accountToRollback, user)) {
+            throw new EntityDoesNotBelongToUserException(
+                    "Transaction on account with id " + accountToRollback.getId() +
+                            " does not belong to " + principal.getName()
+            );
+        }
+
+        this.updateAccountBalance(accountToRollback, transaction, true);
 
         LOGGER.info("Account " + accountToRollback.getName() + " had it's balance updated successfully");
 
@@ -112,7 +130,7 @@ public class TransactionService {
         return true;
     }
 
-    private boolean updateAccontBalance(Account accountToUpdate, Transaction transaction, boolean rollback) {
+    private boolean updateAccountBalance(Account accountToUpdate, Transaction transaction, boolean rollback) {
         float newAccountBalance;
 
         switch(transaction.getType()) {

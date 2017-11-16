@@ -6,6 +6,7 @@ import com.financeapp.enitities.Account;
 import com.financeapp.enitities.Transaction;
 import com.financeapp.exception.AccountNotFoundException;
 import com.financeapp.exception.EntityDoesNotBelongToUserException;
+import com.financeapp.exception.TransactionNotFoundException;
 import com.financeapp.repositories.AccountRepository;
 import com.financeapp.repositories.TransactionRepository;
 import com.financeapp.repositories.UserRepository;
@@ -16,6 +17,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Matchers;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -127,9 +129,14 @@ public class TransactionControllerTest extends BaseTest {
     }
 
     @Test
-    public void a404ResponseCodeShouldBeReturnedIfANonExistentTransactionIdIsPassedWhenRemovingATransaction() throws URISyntaxException {
+    public void a404ResponseCodeShouldBeReturnedIfTransactionServiceThrowsTransactionNotFoundException() throws URISyntaxException {
+
         int id = account.getId().intValue();
         validTransactionDTO = new TransactionDTO("Test Transaction", "Income", 100.0F, id);
+
+        Mockito.when(
+                this.transactionService.removeAccountTransaction(Matchers.anyLong(), Matchers.any(Principal.class))
+        ).thenThrow(TransactionNotFoundException.class);
 
         ResponseEntity response = requestTestUtils.sendAuthenticatedRequest(
                 validTransactionDTO,
@@ -148,7 +155,7 @@ public class TransactionControllerTest extends BaseTest {
         validTransactionDTO = new TransactionDTO("Test Transaction", "Income", 100.0F, id);
 
         Mockito.when(
-                this.transactionService.removeAccountTransaction(Matchers.any())
+                this.transactionService.removeAccountTransaction(Matchers.any(), Matchers.any(Principal.class))
         ).thenReturn(true);
 
         Mockito.when(
@@ -168,7 +175,7 @@ public class TransactionControllerTest extends BaseTest {
     @Test
     public void shouldReturnA500ErrorIfRemovingTheTransactionFails() throws URISyntaxException {
         Mockito.when(
-                this.transactionService.removeAccountTransaction(Matchers.any())
+                this.transactionService.removeAccountTransaction(Matchers.any(), Matchers.any(Principal.class))
         ).thenReturn(false);
 
         Mockito.when(

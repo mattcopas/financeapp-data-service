@@ -8,6 +8,7 @@ import com.financeapp.enitities.User;
 import com.financeapp.exception.AccountNotFoundException;
 import com.financeapp.exception.EntityDoesNotBelongToUserException;
 import com.financeapp.exception.InvalidTransactionTypeException;
+import com.financeapp.exception.TransactionNotFoundException;
 import com.financeapp.repositories.AccountRepository;
 import com.financeapp.repositories.TransactionRepository;
 import com.financeapp.repositories.UserRepository;
@@ -166,7 +167,7 @@ public class TransactionServiceTest extends BaseTest {
 
         Transaction transactionToRemove = transactionRepository.findOneByName("Test Transaction To Remove");
 
-        transactionService.removeAccountTransaction(transactionToRemove);
+        transactionService.removeAccountTransaction(transactionToRemove.getId(), principal);
 
         Assert.assertEquals("The transaction list size should now be 0",
                 0, accountRepository.findOne(accountId).getTransactionList().size());
@@ -186,7 +187,7 @@ public class TransactionServiceTest extends BaseTest {
 
         Transaction transactionToRemove = transactionRepository.findOneByName("Test Transaction To Remove");
 
-        transactionService.removeAccountTransaction(transactionToRemove);
+        transactionService.removeAccountTransaction(transactionToRemove.getId(), principal);
 
         Account updatedAccount = accountRepository.findOne(accountToTest.getId());
 
@@ -207,7 +208,7 @@ public class TransactionServiceTest extends BaseTest {
 
         Transaction transactionToRemove = transactionRepository.findOneByName("Test Transaction To Remove");
 
-        transactionService.removeAccountTransaction(transactionToRemove);
+        transactionService.removeAccountTransaction(transactionToRemove.getId(), principal);
 
         Account updatedAccount = accountRepository.findOne(accountToTest.getId());
 
@@ -233,5 +234,24 @@ public class TransactionServiceTest extends BaseTest {
         Principal wrongPrincipal = () -> "wronguser@test.com";
 
         transactionService.performAccountTransaction(transactionDTO, wrongPrincipal);
+    }
+
+    @Test(expected = TransactionNotFoundException.class)
+    public void testTransactionNotFoundExceptionIsThrown() throws Exception {
+
+        transactionService.removeAccountTransaction((long) 999, principal);
+    }
+
+    @Test(expected = EntityDoesNotBelongToUserException.class)
+    public void testEntityDoesNotBelongToUserExceptionIsThrownWhenRollingBackATransactionOnAnAccountNotBelongingToPrincipal() {
+        Transaction transactionToRemove = transactionRepository.save(new Transaction(
+                "Test Transaction",
+                "Income",
+                100.0F,
+                accountToTest
+        ));
+
+        Principal wrongPrincipal = () -> "wronguser@test.com";
+        transactionService.removeAccountTransaction(transactionToRemove.getId(), wrongPrincipal);
     }
 }

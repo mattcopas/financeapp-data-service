@@ -5,6 +5,7 @@ import com.financeapp.enitities.Account;
 import com.financeapp.enitities.Transaction;
 import com.financeapp.exception.AccountNotFoundException;
 import com.financeapp.exception.EntityDoesNotBelongToUserException;
+import com.financeapp.exception.TransactionNotFoundException;
 import com.financeapp.repositories.AccountRepository;
 import com.financeapp.repositories.TransactionRepository;
 import com.financeapp.services.TransactionService;
@@ -61,19 +62,16 @@ public class TransactionController {
     }
 
     @RequestMapping(value = "/rollback/{transactionId}", method = RequestMethod.POST)
-    public ResponseEntity<String> rollbackTransactionByTransactionId(@PathVariable int transactionId) {
+    public ResponseEntity<String> rollbackTransactionByTransactionId(@PathVariable int transactionId, Principal principal) {
 
-        // TODO Refactor into TransactionService
-        Transaction transaction = transactionRepository.findOne((long) transactionId);
-
-        if(transaction == null) {
-            LOGGER.error("Transaction not found with id " + transactionId);
-            return new ResponseEntity<>("The transaction with id " + transactionId + " was not found", HttpStatus.NOT_FOUND);
-        }
-
-        if(transactionService.removeAccountTransaction(transactionRepository.findOne((long) transactionId))) {
-            LOGGER.info("Transaction " + transactionId + " rolled back successfully");
-            return new ResponseEntity<>("Transaction removed", HttpStatus.ACCEPTED);
+        try {
+            if(transactionService.removeAccountTransaction((long) transactionId, principal)) {
+                LOGGER.info("Transaction " + transactionId + " rolled back successfully");
+                return new ResponseEntity<>("Transaction removed", HttpStatus.ACCEPTED);
+            }
+        } catch(TransactionNotFoundException e) {
+            LOGGER.error(e.getMessage());
+            return new ResponseEntity<String>(e.getMessage(), HttpStatus.NOT_FOUND);
         }
 
         LOGGER.error("Internal server error when rolling back transaction with id " + transactionId);
