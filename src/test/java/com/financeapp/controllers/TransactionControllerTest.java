@@ -4,8 +4,11 @@ import com.financeapp.BaseTest;
 import com.financeapp.DTOs.TransactionDTO;
 import com.financeapp.enitities.Account;
 import com.financeapp.enitities.Transaction;
+import com.financeapp.enitities.User;
+import com.financeapp.exception.AccountNotFoundException;
 import com.financeapp.repositories.AccountRepository;
 import com.financeapp.repositories.TransactionRepository;
+import com.financeapp.repositories.UserRepository;
 import com.financeapp.services.TransactionService;
 import com.financeapp.utils.OAuth2TestUtils;
 import com.financeapp.utils.RequestTestUtils;
@@ -20,6 +23,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 
 import java.net.URISyntaxException;
+import java.security.Principal;
 
 /**
  * Created by Matt on 20/05/2017.
@@ -28,6 +32,8 @@ public class TransactionControllerTest extends BaseTest {
 
     @Autowired
     private AccountRepository accountRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private TestRestTemplate restTemplate;
@@ -49,8 +55,13 @@ public class TransactionControllerTest extends BaseTest {
     @Before
     public void setup() throws Exception {
 
-        System.out.println("PORT NUMBER BEFORE: " + port);
-        account = accountRepository.save(new Account());
+        account = accountRepository.save(new Account(
+                "Test Account",
+                "Current",
+                "GBP",
+                100.0F,
+                userRepository.findOneByUsername("test@test.com"))
+        );
 
         accessToken = OAuth2TestUtils.getAccessToken(restTemplate);
         
@@ -59,7 +70,9 @@ public class TransactionControllerTest extends BaseTest {
     }
 
     @Test
-    public void testAddingTransactionReturns400IfNonExistentAccountIdIsPassed() throws URISyntaxException {
+    public void testAddingTransactionReturns400IfNonExistentAccountIdIsPassed() throws Exception {
+
+        Mockito.when(this.transactionService.performAccountTransaction(Matchers.any(TransactionDTO.class), Matchers.any(Principal.class))).thenThrow(AccountNotFoundException.class);
 
         invalidTransactionDTO = new TransactionDTO("Test Transaction", "Income", 100.0F, 999);
         
@@ -75,7 +88,7 @@ public class TransactionControllerTest extends BaseTest {
         int id = account.getId().intValue();
         validTransactionDTO = new TransactionDTO("Test Transaction", "Income", 100.0F, id);
 
-        Mockito.when(this.transactionService.performAccountTransaction(Matchers.any(Transaction.class))).thenReturn(true);
+        Mockito.when(this.transactionService.performAccountTransaction(Matchers.any(TransactionDTO.class), Matchers.any(Principal.class))).thenReturn(true);
 
         ResponseEntity response = requestTestUtils.sendAuthenticatedRequest(
                 validTransactionDTO,
@@ -94,7 +107,8 @@ public class TransactionControllerTest extends BaseTest {
 
         Mockito.when(
             this.transactionService.performAccountTransaction(
-                Matchers.any(Transaction.class)
+                Matchers.any(TransactionDTO.class),
+                Matchers.any(Principal.class)
             )
         ).thenReturn(false);
 

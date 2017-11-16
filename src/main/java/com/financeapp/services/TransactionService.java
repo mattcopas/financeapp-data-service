@@ -1,16 +1,22 @@
 package com.financeapp.services;
 
+import com.financeapp.DTOs.TransactionDTO;
 import com.financeapp.enitities.Account;
 import com.financeapp.enitities.Transaction;
+import com.financeapp.enitities.User;
+import com.financeapp.exception.AccountNotFoundException;
+import com.financeapp.exception.EntityDoesNotBelongToUserException;
 import com.financeapp.exception.InvalidTransactionTypeException;
 import com.financeapp.repositories.AccountRepository;
 import com.financeapp.repositories.TransactionRepository;
+import com.financeapp.repositories.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.security.Principal;
 
 /**
  * Created by Matt on 20/05/2017.
@@ -26,29 +32,58 @@ public class TransactionService {
     @Autowired
     private TransactionRepository transactionRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private AccountService accountService;
+
     @Transactional
-    public boolean performAccountTransaction(Transaction transaction) throws Exception {
+    public boolean performAccountTransaction(TransactionDTO transactionDTO, Principal principal) throws Exception {
 
-        transactionRepository.save(transaction);
+        long accountId = transactionDTO.getAccountId();
 
-        LOGGER.info("Transaction " + transaction.getId() + " saved successfully");
+        if( ! accountRepository.existsById(accountId)) {
 
-        Account accountToUpdate = transaction.getAccount();
+            throw new AccountNotFoundException("Account with id " + accountId + " not found");
 
-        if( ! this.updateAccontBalance(accountToUpdate, transaction, false)) {
+        }
+
+        Account account = accountRepository.findOne(accountId);
+
+        User user = userRepository.findOneByUsername(principal.getName());
+
+        if( ! accountService.accountBelongsToUser(account, user)) {
+            throw new EntityDoesNotBelongToUserException(
+                    "The account with id " + account.getId() + " does not belong to " + principal.getName()
+            );
+        }
+
+        Transaction transaction = new Transaction(
+                transactionDTO.getName(),
+                transactionDTO.getType(),
+                transactionDTO.getAmount(),
+                account
+        );
+
+        Transaction savedTransaction = transactionRepository.save(transaction);
+
+        LOGGER.info("Transaction " + savedTransaction.getId() + " saved successfully");
+
+        if( ! this.updateAccontBalance(account, transaction, false)) {
             InvalidTransactionTypeException invalidTransactionTypeException =
-                    new InvalidTransactionTypeException("The transaction type " + transaction.getType() + " is not valid");
+                    new InvalidTransactionTypeException("The transaction type " + transactionDTO.getType() + " is not valid");
             LOGGER.error("Invalid transaction type exception thrown " + invalidTransactionTypeException.getMessage());
             throw invalidTransactionTypeException;
         }
 
-        this.addTransactionToAccountTransactionsList(accountToUpdate, transaction);
+        this.addTransactionToAccountTransactionsList(account, transaction);
 
-        LOGGER.info("Transaction " + transaction.getName() + " added to account " + accountToUpdate.getName() + " successfully");
+        LOGGER.info("Transaction " + transactionDTO.getName() + " added to account " + account.getName() + " successfully");
 
-        accountRepository.save(accountToUpdate);
+        accountRepository.save(account);
 
-        LOGGER.info("Account " + accountToUpdate.getName() + " updated successfully");
+        LOGGER.info("Account " + account.getName() + " updated successfully");
 
         return true;
     }

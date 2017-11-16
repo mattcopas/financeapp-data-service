@@ -11,6 +11,8 @@ import org.springframework.data.rest.core.annotation.RestResource;
 @RepositoryRestResource
 public interface TransactionRepository extends PagingAndSortingRepository<Transaction, Long> {
 
+    Transaction findOneByName(String name);
+
     @Override
     @RestResource(exported = false)
     void delete(Long id);

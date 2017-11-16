@@ -3,6 +3,8 @@ package com.financeapp.controllers;
 import com.financeapp.DTOs.TransactionDTO;
 import com.financeapp.enitities.Account;
 import com.financeapp.enitities.Transaction;
+import com.financeapp.exception.AccountNotFoundException;
+import com.financeapp.exception.EntityDoesNotBelongToUserException;
 import com.financeapp.repositories.AccountRepository;
 import com.financeapp.repositories.TransactionRepository;
 import com.financeapp.services.TransactionService;
@@ -11,7 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.access.method.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -37,33 +39,23 @@ public class TransactionController {
     @RequestMapping(value = "/add", method = RequestMethod.POST)
     public ResponseEntity<String> addTransactionUsingAccountId(
             @RequestBody TransactionDTO transactionDTO,
-            Principal principal) throws Exception {
+            Principal principal
+    ) throws Exception {
 
-        Long accountId = Integer.toUnsignedLong(transactionDTO.getAccountId());
-
-        if( ! accountRepository.existsById(accountId)) {
-
-            String responseBody = "Account with id " + accountId + " not found";
-            ResponseEntity<String> response = new ResponseEntity<>(responseBody, HttpStatus.BAD_REQUEST);
-            LOGGER.error("Account with id " + accountId + " not found");
-            return response;
+        try {
+            boolean transactionResult = transactionService.performAccountTransaction(transactionDTO, principal);
+            if(transactionResult) {
+                return new ResponseEntity<String>("Transaction added successfully", HttpStatus.ACCEPTED);
+            }
+        } catch (AccountNotFoundException e) {
+            LOGGER.error(e.getMessage());
+            return new ResponseEntity<String>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (EntityDoesNotBelongToUserException e) {
+            LOGGER.error(e.getMessage());
+            return new ResponseEntity<String>(e.getMessage(), HttpStatus.FORBIDDEN);
         }
 
-        Account transactionAccount = accountRepository.findOne(accountId);
-
-        Transaction transaction = new Transaction(
-                transactionDTO.getName(),
-                transactionDTO.getType(),
-                transactionDTO.getAmount(),
-                transactionAccount
-        );
-
-        if(transactionService.performAccountTransaction(transaction)) {
-            LOGGER.info("Transaction with id " + transaction.getId() + " successfully added");
-            return new ResponseEntity<>(HttpStatus.ACCEPTED);
-        }
-
-        LOGGER.error("Internal server error when adding transaction " + transaction.getId());
+        LOGGER.error("Internal server error when adding transaction " + transactionDTO.getName());
         return new ResponseEntity<>("There was a problem adding the transaction", HttpStatus.INTERNAL_SERVER_ERROR);
 
     }
@@ -71,6 +63,7 @@ public class TransactionController {
     @RequestMapping(value = "/rollback/{transactionId}", method = RequestMethod.POST)
     public ResponseEntity<String> rollbackTransactionByTransactionId(@PathVariable int transactionId) {
 
+        // TODO Refactor into TransactionService
         Transaction transaction = transactionRepository.findOne((long) transactionId);
 
         if(transaction == null) {
