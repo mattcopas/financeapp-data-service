@@ -1,38 +1,43 @@
 package com.financeapp.controllers;
 
+import com.financeapp.BaseTest;
 import com.financeapp.DTOs.TransactionDTO;
 import com.financeapp.enitities.Account;
 import com.financeapp.enitities.Transaction;
+import com.financeapp.exception.AccountNotFoundException;
+import com.financeapp.exception.EntityDoesNotBelongToUserException;
+import com.financeapp.exception.TransactionNotFoundException;
 import com.financeapp.repositories.AccountRepository;
 import com.financeapp.repositories.TransactionRepository;
+import com.financeapp.repositories.UserRepository;
 import com.financeapp.services.TransactionService;
+import com.financeapp.utils.OAuth2TestUtils;
+import com.financeapp.utils.RequestTestUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Matchers;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+
+import java.net.URISyntaxException;
+import java.security.Principal;
 
 /**
  * Created by Matt on 20/05/2017.
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("tdd")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class TransactionControllerTest {
+public class TransactionControllerTest extends BaseTest {
 
     @Autowired
     private AccountRepository accountRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private TestRestTemplate restTemplate;
@@ -47,21 +52,35 @@ public class TransactionControllerTest {
     private TransactionDTO invalidTransactionDTO;
     private TransactionDTO validTransactionDTO;
 
+    private String accessToken;
+    
+    private RequestTestUtils requestTestUtils;
+
     @Before
     public void setup() throws Exception {
-        account = accountRepository.save(new Account());
+
+        account = accountRepository.save(new Account(
+                "Test Account",
+                "Current",
+                "GBP",
+                100.0F,
+                userRepository.findOneByUsername("test@test.com"))
+        );
+
+        accessToken = OAuth2TestUtils.getAccessToken(restTemplate);
+        
+        requestTestUtils = new RequestTestUtils(accessToken, restTemplate);
+
     }
 
     @Test
-    public void testAddingTransactionReturns400IfNonExistentAccountIdIsPassed() {
+    public void testAddingTransactionReturns400IfNonExistentAccountIdIsPassed() throws Exception {
+
+        Mockito.when(this.transactionService.performAccountTransaction(Matchers.any(TransactionDTO.class), Matchers.any(Principal.class))).thenThrow(AccountNotFoundException.class);
 
         invalidTransactionDTO = new TransactionDTO("Test Transaction", "Income", 100.0F, 999);
-
-        ResponseEntity response = restTemplate.postForEntity(
-                "/transaction/add",
-                invalidTransactionDTO,
-                String.class
-        );
+        
+        ResponseEntity response = requestTestUtils.sendAuthenticatedRequest(invalidTransactionDTO, HttpMethod.POST, "/transaction/add", String.class);
 
         Assert.assertEquals("Should return a 400 response code", HttpStatus.BAD_REQUEST, response.getStatusCode());
 
@@ -73,12 +92,12 @@ public class TransactionControllerTest {
         int id = account.getId().intValue();
         validTransactionDTO = new TransactionDTO("Test Transaction", "Income", 100.0F, id);
 
-        Mockito.when(this.transactionService.performAccountTransaction(Matchers.any(Transaction.class))).thenReturn(true);
+        Mockito.when(this.transactionService.performAccountTransaction(Matchers.any(TransactionDTO.class), Matchers.any(Principal.class))).thenReturn(true);
 
-
-        ResponseEntity response = restTemplate.postForEntity(
-                "/transaction/add",
+        ResponseEntity response = requestTestUtils.sendAuthenticatedRequest(
                 validTransactionDTO,
+                HttpMethod.POST,
+                "/transaction/add",
                 String.class
         );
 
@@ -92,13 +111,15 @@ public class TransactionControllerTest {
 
         Mockito.when(
             this.transactionService.performAccountTransaction(
-                Matchers.any(Transaction.class)
+                Matchers.any(TransactionDTO.class),
+                Matchers.any(Principal.class)
             )
         ).thenReturn(false);
 
-        ResponseEntity response = restTemplate.postForEntity(
-                "/transaction/add",
+        ResponseEntity response = requestTestUtils.sendAuthenticatedRequest(
                 invalidTransactionDTO,
+                HttpMethod.POST,
+                "/transaction/add",
                 String.class
         );
 
@@ -108,61 +129,91 @@ public class TransactionControllerTest {
     }
 
     @Test
-    public void a404ResponseCodeShouldBeReturnedIfANonExistentTransactionIdIsPassedWhenRemovingATransaction() {
-        int id = account.getId().intValue();
-        validTransactionDTO = new TransactionDTO("Test Transaction", "Income", 100.0F, id);
+    public void a404ResponseCodeShouldBeReturnedIfTransactionServiceThrowsTransactionNotFoundException() throws URISyntaxException {
 
-        ResponseEntity removeTransactionResponse = restTemplate.postForEntity(
-                "/transaction/rollback/999",
-                null,
-                String.class
-        );
-
-        Assert.assertEquals("The response code should be a 404 if the transaction is not found",
-                HttpStatus.NOT_FOUND, removeTransactionResponse.getStatusCode());
-    }
-
-    @Test
-    public void shouldReturnA202ResponseCodeIfTheTransactionIsRemovedSuccessfully() {
         int id = account.getId().intValue();
         validTransactionDTO = new TransactionDTO("Test Transaction", "Income", 100.0F, id);
 
         Mockito.when(
-                this.transactionService.removeAccountTransaction(Matchers.any())
+                this.transactionService.removeAccountTransaction(Matchers.anyLong(), Matchers.any(Principal.class))
+        ).thenThrow(TransactionNotFoundException.class);
+
+        ResponseEntity response = requestTestUtils.sendAuthenticatedRequest(
+                validTransactionDTO,
+                HttpMethod.POST,
+                "/transaction/rollback/999",
+                String.class
+        );
+
+        Assert.assertEquals("The response code should be a 404 if the transaction is not found",
+                HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    public void shouldReturnA202ResponseCodeIfTheTransactionIsRemovedSuccessfully() throws URISyntaxException {
+        int id = account.getId().intValue();
+        validTransactionDTO = new TransactionDTO("Test Transaction", "Income", 100.0F, id);
+
+        Mockito.when(
+                this.transactionService.removeAccountTransaction(Matchers.any(), Matchers.any(Principal.class))
         ).thenReturn(true);
 
         Mockito.when(
                 this.transactionRepository.findOne(Matchers.any())
         ).thenReturn(new Transaction());
 
-        ResponseEntity removeTransactionResponse = restTemplate.postForEntity(
-                "/transaction/rollback/1",
-                null,
-                String.class
-        );
+        ResponseEntity response = requestTestUtils.sendAuthenticatedRequest(
+                validTransactionDTO,
+                HttpMethod.POST,
+                "/transaction/rollback/" + id,
+                String.class);
 
         Assert.assertEquals("Should return a 202 Accepted response code when removing a transaction",
-                HttpStatus.ACCEPTED, removeTransactionResponse.getStatusCode());
+                HttpStatus.ACCEPTED, response.getStatusCode());
     }
 
     @Test
-    public void shouldReturnA500ErrorIfRemovingTheTransactionFails() {
+    public void shouldReturnA500ErrorIfRemovingTheTransactionFails() throws URISyntaxException {
         Mockito.when(
-                this.transactionService.removeAccountTransaction(Matchers.any())
+                this.transactionService.removeAccountTransaction(Matchers.any(), Matchers.any(Principal.class))
         ).thenReturn(false);
 
         Mockito.when(
                 this.transactionRepository.findOne(Matchers.any())
         ).thenReturn(new Transaction());
 
-        ResponseEntity removeTransactionResponse = restTemplate.postForEntity(
-                "/transaction/rollback/1",
+
+        ResponseEntity response = requestTestUtils.sendAuthenticatedRequest(
                 null,
+                HttpMethod.POST,
+                "/transaction/rollback/1",
                 String.class
         );
 
         Assert.assertEquals("Should return a 500 error if the transaction fails to rollback",
-                HttpStatus.INTERNAL_SERVER_ERROR, removeTransactionResponse.getStatusCode());
+                HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    public void test403IsReturnedIfEntityDoesNotBelongToUserExceptionIsThrownByTransactionService() throws Exception {
+
+        validTransactionDTO = new TransactionDTO("Test Transaction", "Income", 100.0F, account.getId().intValue());
+
+        Mockito.when(
+                this.transactionService.performAccountTransaction(
+                        Matchers.any(TransactionDTO.class), Matchers.any(Principal.class)
+                )
+        ).thenThrow(EntityDoesNotBelongToUserException.class);
+
+        ResponseEntity response = requestTestUtils.sendAuthenticatedRequest(
+                validTransactionDTO,
+                HttpMethod.POST,
+                "/transaction/add",
+                String.class
+        );
+
+        Assert.assertEquals("Should return 403,",
+                HttpStatus.FORBIDDEN, response.getStatusCode());
     }
 
 }

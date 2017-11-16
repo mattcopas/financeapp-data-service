@@ -1,10 +1,12 @@
 package com.financeapp.enitities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.OneToMany;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -22,7 +24,12 @@ public class User extends BaseEntity implements UserDetails {
     public User(String username, String password) {
         this.username = username;
         this.password = password;
+        this.accounts = new ArrayList<>();
     }
+
+    @OneToMany
+    @JsonBackReference
+    private List<Account> accounts;
 
     @Column(nullable = false, unique = true)
     private String username;
@@ -69,4 +76,13 @@ public class User extends BaseEntity implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
+    public List<Account> getAccounts() {
+        return this.accounts;
+    }
+
+    public void setAccounts(List<Account> accounts) {
+        this.accounts = accounts;
+    }
 }
+

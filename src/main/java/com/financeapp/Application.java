@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SpringBootApplication
-@EnableResourceServer
 public class Application {
 
 	public static void main(String[] args) {
@@ -40,16 +39,16 @@ public class Application {
 			User userToAdd = new User(
 					"test@test.com",
 					"$2a$06$vObjHaxHZA7vuB4TH.MTH.xYRyKJj.KbrbP88aI3wR2vVEoYgiuam");
-			userRepository.save(userToAdd);
+			User savedUser = userRepository.save(userToAdd);
 
 
-			Account accountToAdd = new Account("Test Account 1", "Current", "GBP", 100.0F);
+			Account accountToAdd = new Account("Test Account 1", "Current", "GBP", 100.0F, savedUser);
 
 			accountRepository.save(accountToAdd);
 
-			List<Transaction> transactionsToAdd = new ArrayList<Transaction>();
-			Transaction transaction = new Transaction("Test Transaction 1", "Income", 25.0F, accountToAdd);
-			transactionService.performAccountTransaction(transaction);
+//			List<Transaction> transactionsToAdd = new ArrayList<Transaction>();
+//			Transaction transaction = new Transaction("Test Transaction 1", "Income", 25.0F, accountToAdd);
+//			transactionService.performAccountTransaction(transaction);
 
 		};
 
