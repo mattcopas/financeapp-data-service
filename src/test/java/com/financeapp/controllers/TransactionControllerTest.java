@@ -4,8 +4,8 @@ import com.financeapp.BaseTest;
 import com.financeapp.DTOs.TransactionDTO;
 import com.financeapp.enitities.Account;
 import com.financeapp.enitities.Transaction;
-import com.financeapp.enitities.User;
 import com.financeapp.exception.AccountNotFoundException;
+import com.financeapp.exception.EntityDoesNotBelongToUserException;
 import com.financeapp.repositories.AccountRepository;
 import com.financeapp.repositories.TransactionRepository;
 import com.financeapp.repositories.UserRepository;
@@ -20,7 +20,9 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.*;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.net.URISyntaxException;
 import java.security.Principal;
@@ -183,6 +185,28 @@ public class TransactionControllerTest extends BaseTest {
 
         Assert.assertEquals("Should return a 500 error if the transaction fails to rollback",
                 HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    public void test403IsReturnedIfEntityDoesNotBelongToUserExceptionIsThrownByTransactionService() throws Exception {
+
+        validTransactionDTO = new TransactionDTO("Test Transaction", "Income", 100.0F, account.getId().intValue());
+
+        Mockito.when(
+                this.transactionService.performAccountTransaction(
+                        Matchers.any(TransactionDTO.class), Matchers.any(Principal.class)
+                )
+        ).thenThrow(EntityDoesNotBelongToUserException.class);
+
+        ResponseEntity response = requestTestUtils.sendAuthenticatedRequest(
+                validTransactionDTO,
+                HttpMethod.POST,
+                "/transaction/add",
+                String.class
+        );
+
+        Assert.assertEquals("Should return 403,",
+                HttpStatus.FORBIDDEN, response.getStatusCode());
     }
 
 }
