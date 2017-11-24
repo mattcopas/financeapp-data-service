@@ -5,6 +5,7 @@ import com.financeapp.DTOs.TransactionDTO;
 import com.financeapp.enitities.Account;
 import com.financeapp.enitities.Transaction;
 import com.financeapp.enitities.User;
+import com.financeapp.enums.RepeatTransactionInterval;
 import com.financeapp.exception.AccountNotFoundException;
 import com.financeapp.exception.EntityDoesNotBelongToUserException;
 import com.financeapp.exception.InvalidTransactionTypeException;
@@ -15,14 +16,13 @@ import com.financeapp.repositories.UserRepository;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.security.Principal;
+
+import static java.time.temporal.ChronoUnit.DAYS;
+import static java.time.temporal.ChronoUnit.WEEKS;
+import static java.time.temporal.ChronoUnit.YEARS;
 
 /**
  * Created by Matt on 20/05/2017.
@@ -253,5 +253,97 @@ public class TransactionServiceTest extends BaseTest {
 
         Principal wrongPrincipal = () -> "wronguser@test.com";
         transactionService.removeAccountTransaction(transactionToRemove.getId(), wrongPrincipal);
+    }
+
+    @Test
+    public void testPerformingARepeatingTransactionSavesANewTransaction() throws Exception {
+        Transaction repeatingTransaction = transactionRepository.save(new Transaction(
+                "Test Transaction",
+                "Income",
+                100.0F,
+                accountToTest,
+                RepeatTransactionInterval.DAILY
+        ));
+
+        int initialNumberOfTransactions = accountToTest.getTransactionList().size();
+
+        transactionService.performRepeatedTransaction(repeatingTransaction, accountToTest);
+
+        Account updatedAccount = accountRepository.findOne(accountToTest.getId());
+
+        Assert.assertEquals("The number of transactions on the account should increment by 1",
+                initialNumberOfTransactions + 1, updatedAccount.getTransactionList().size());
+    }
+
+    @Test
+    public void testPerformingARepeatingTransactionUpdatedNextDateToBePerformedByADay() throws Exception {
+        Transaction repeatingTransaction = transactionRepository.save(new Transaction(
+                "Test Transaction",
+                "Income",
+                100.0F,
+                accountToTest,
+                RepeatTransactionInterval.DAILY
+        ));
+
+        transactionService.performRepeatedTransaction(repeatingTransaction, accountToTest);
+
+        Transaction updatedTransaction = transactionRepository.findOne(repeatingTransaction.getId());
+
+        Assert.assertEquals("Last performed and next date to be performed should be a difference of 1 day",
+                1,
+                DAYS.between(
+                        updatedTransaction.getLastPerformed(),
+                        updatedTransaction.getNextDateToPerformTransaction()
+                )
+        );
+
+    }
+
+    @Test
+    public void testPerformingARepeatingTransactionUpdatedNextDateToBePerformedByAWeek() throws Exception {
+        Transaction repeatingTransaction = transactionRepository.save(new Transaction(
+                "Test Transaction",
+                "Income",
+                100.0F,
+                accountToTest,
+                RepeatTransactionInterval.WEEKLY
+        ));
+
+        transactionService.performRepeatedTransaction(repeatingTransaction, accountToTest);
+
+        Transaction updatedTransaction = transactionRepository.findOne(repeatingTransaction.getId());
+
+        Assert.assertEquals("Last performed and next date to be performed should be a difference of 1 week",
+                1,
+                WEEKS.between(
+                        updatedTransaction.getLastPerformed(),
+                        updatedTransaction.getNextDateToPerformTransaction()
+                )
+        );
+
+    }
+
+    @Test
+    public void testPerformingARepeatingTransactionUpdatedNextDateToBePerformedByAYear() throws Exception {
+        Transaction repeatingTransaction = transactionRepository.save(new Transaction(
+                "Test Transaction",
+                "Income",
+                100.0F,
+                accountToTest,
+                RepeatTransactionInterval.ANNUAL
+        ));
+
+        transactionService.performRepeatedTransaction(repeatingTransaction, accountToTest);
+
+        Transaction updatedTransaction = transactionRepository.findOne(repeatingTransaction.getId());
+
+        Assert.assertEquals("Last performed and next date to be performed should be a difference of 1 year",
+                1,
+                YEARS.between(
+                        updatedTransaction.getLastPerformed(),
+                        updatedTransaction.getNextDateToPerformTransaction()
+                )
+        );
+
     }
 }

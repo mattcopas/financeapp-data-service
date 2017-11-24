@@ -3,6 +3,7 @@ package com.financeapp.repositories;
 import com.financeapp.BaseTest;
 import com.financeapp.enitities.Account;
 import com.financeapp.enitities.Transaction;
+import com.financeapp.enums.RepeatTransactionInterval;
 import com.financeapp.utils.OAuth2TestUtils;
 import com.financeapp.utils.RequestTestUtils;
 import org.junit.Assert;
@@ -15,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.net.URISyntaxException;
+import java.util.List;
 
 /**
  * Created by Matt on 10/06/2017.
@@ -72,5 +74,35 @@ public class TransactionRepositoryTest extends BaseTest {
         Assert.assertEquals("Response should be 404",
                 HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
 
+    }
+
+    @Test
+    public void testFindByRepeatTransactionIntervalNotNull() {
+
+        Account savedAccount = accountRepository.save(new Account());
+        transactionRepository.save(new Transaction(
+                "Test Non Repeating Transaction",
+                "Income",
+                100.0F,
+                savedAccount
+        ));
+
+        transactionRepository.save(new Transaction(
+                "Test Repeating Transaction",
+                "Income",
+                100.0F,
+                savedAccount,
+                RepeatTransactionInterval.WEEKLY
+        ));
+
+        List<Transaction> nonRepeatingTransactions = transactionRepository.findByRepeatTransactionIntervalNotNull();
+
+        Assert.assertEquals("Number of repeating transactions should be 1", 1, nonRepeatingTransactions.size());
+
+        Assert.assertEquals(
+                "First non repeating transaction should be Test Repeating Transaction",
+                "Test Repeating Transaction",
+                nonRepeatingTransactions.get(0).getName()
+        );
     }
 }
