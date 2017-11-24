@@ -1,6 +1,11 @@
 package com.financeapp.enitities;
 
-import javax.persistence.*;
+import com.financeapp.enums.RepeatTransactionInterval;
+
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.ManyToOne;
+import java.time.LocalDate;
 
 /**
  * Created by Matt on 19/05/2017.
@@ -17,6 +22,38 @@ public class Transaction extends BaseEntity {
         this.type = type;
         this.amount = amount;
         this.account = account;
+        this.repeatTransactionInterval = null;
+        this.nextDateToPerformTransaction = null;
+        this.lastPerformed = null;
+    }
+
+    public Transaction(
+            String name,
+            String type,
+            float amount,
+            Account account,
+            RepeatTransactionInterval repeatTransactionInterval
+    ) {
+        this.name = name;
+        this.type = type;
+        this.amount = amount;
+        this.account = account;
+        this.repeatTransactionInterval = repeatTransactionInterval;
+
+        switch (repeatTransactionInterval) {
+            case DAILY:
+                this.nextDateToPerformTransaction = LocalDate.now().plusDays(1);
+                break;
+            case WEEKLY:
+                this.nextDateToPerformTransaction = LocalDate.now().plusDays(7);
+                break;
+            case MONTHLY:
+                this.nextDateToPerformTransaction = LocalDate.now().plusMonths(1);
+                break;
+            case ANNUAL:
+                this.nextDateToPerformTransaction = LocalDate.now().plusYears(1);
+                break;
+        }
     }
 
     private String name;
@@ -28,6 +65,10 @@ public class Transaction extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.EAGER)
     private Account account;
+
+    private RepeatTransactionInterval repeatTransactionInterval;
+    private LocalDate nextDateToPerformTransaction;
+    private LocalDate lastPerformed;
 
     public String getName() {
         return name;
@@ -59,5 +100,29 @@ public class Transaction extends BaseEntity {
 
     public void setAccount(Account account) {
         this.account = account;
+    }
+
+    public RepeatTransactionInterval getRepeatTransactionInterval() {
+        return this.repeatTransactionInterval;
+    }
+
+    public void setRepeatTransactionInterval(RepeatTransactionInterval repeatTransactionInterval) {
+        this.repeatTransactionInterval = repeatTransactionInterval;
+    }
+
+    public LocalDate getNextDateToPerformTransaction() {
+        return nextDateToPerformTransaction;
+    }
+
+    public void setNextDateToPerformTransaction(LocalDate nextDateToPerformTransaction) {
+        this.nextDateToPerformTransaction = nextDateToPerformTransaction;
+    }
+
+    public LocalDate getLastPerformed() {
+        return lastPerformed;
+    }
+
+    public void setLastPerformed(LocalDate lastPerformed) {
+        this.lastPerformed = lastPerformed;
     }
 }

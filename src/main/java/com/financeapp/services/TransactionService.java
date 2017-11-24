@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.security.Principal;
+import java.time.LocalDate;
 
 /**
  * Created by Matt on 20/05/2017.
@@ -42,6 +43,8 @@ public class TransactionService {
     @Transactional
     public boolean performAccountTransaction(TransactionDTO transactionDTO, Principal principal) throws Exception {
 
+        User user = userRepository.findOneByUsername(principal.getName());
+
         long accountId = transactionDTO.getAccountId();
 
         if( ! accountRepository.existsById(accountId)) {
@@ -52,41 +55,31 @@ public class TransactionService {
 
         Account account = accountRepository.findOne(accountId);
 
-        User user = userRepository.findOneByUsername(principal.getName());
-
         if( ! accountService.accountBelongsToUser(account, user)) {
             throw new EntityDoesNotBelongToUserException(
                     "The account with id " + account.getId() + " does not belong to " + principal.getName()
             );
         }
 
-        Transaction transaction = new Transaction(
-                transactionDTO.getName(),
-                transactionDTO.getType(),
-                transactionDTO.getAmount(),
-                account
+        return this.performAccountTransaction(transactionDTO, account);
+    }
+
+
+    @Transactional
+    public boolean performRepeatedTransaction(Transaction transaction, Account account) throws Exception {
+
+        TransactionDTO transactionDTO = new TransactionDTO(
+                transaction.getName(),
+                transaction.getType(),
+                transaction.getAmount(),
+                transaction.getAccount().getId().intValue()
         );
 
-        Transaction savedTransaction = transactionRepository.save(transaction);
-
-        LOGGER.info("Transaction " + savedTransaction.getId() + " saved successfully");
-
-        if( ! this.updateAccountBalance(account, transaction, false)) {
-            InvalidTransactionTypeException invalidTransactionTypeException =
-                    new InvalidTransactionTypeException("The transaction type " + transactionDTO.getType() + " is not valid");
-            LOGGER.error("Invalid transaction type exception thrown " + invalidTransactionTypeException.getMessage());
-            throw invalidTransactionTypeException;
+        if(this.performAccountTransaction(transactionDTO, account)) {
+            this.updateLastPerformed(transaction);
+            this.updateNextDateToBePerformed(transaction);
         }
-
-        this.addTransactionToAccountTransactionsList(account, transaction);
-
-        LOGGER.info("Transaction " + transactionDTO.getName() + " added to account " + account.getName() + " successfully");
-
-        accountRepository.save(account);
-
-        LOGGER.info("Account " + account.getName() + " updated successfully");
-
-        return true;
+        return false;
     }
 
     @Transactional
@@ -130,6 +123,41 @@ public class TransactionService {
         return true;
     }
 
+    @Transactional
+    private boolean performAccountTransaction(TransactionDTO transactionDTO, Account account) throws Exception {
+
+
+
+        Transaction transaction = new Transaction(
+                transactionDTO.getName(),
+                transactionDTO.getType(),
+                transactionDTO.getAmount(),
+                account
+        );
+
+        Transaction savedTransaction = transactionRepository.save(transaction);
+
+        LOGGER.info("Transaction " + savedTransaction.getId() + " saved successfully");
+
+        if( ! this.updateAccountBalance(account, transaction, false)) {
+            InvalidTransactionTypeException invalidTransactionTypeException =
+                    new InvalidTransactionTypeException("The transaction type " + transactionDTO.getType() + " is not valid");
+            LOGGER.error("Invalid transaction type exception thrown " + invalidTransactionTypeException.getMessage());
+            throw invalidTransactionTypeException;
+        }
+
+        this.addTransactionToAccountTransactionsList(account, transaction);
+
+        LOGGER.info("Transaction " + transactionDTO.getName() + " added to account " + account.getName() + " successfully");
+
+        accountRepository.save(account);
+
+        LOGGER.info("Account " + account.getName() + " updated successfully");
+
+        return true;
+    }
+
+
     private boolean updateAccountBalance(Account accountToUpdate, Transaction transaction, boolean rollback) {
         float newAccountBalance;
 
@@ -162,5 +190,29 @@ public class TransactionService {
 
     private void removeTransactionFromTransactionList(Account accountToRollback, Transaction transaction) {
         accountToRollback.getTransactionList().remove(transaction);
+    }
+
+    private void updateNextDateToBePerformed(Transaction transaction) {
+
+        LocalDate lastPerformed = transaction.getLastPerformed();
+
+        switch (transaction.getRepeatTransactionInterval()) {
+            case DAILY:
+                transaction.setNextDateToPerformTransaction(lastPerformed.plusDays(1));
+                break;
+            case WEEKLY:
+                transaction.setNextDateToPerformTransaction(lastPerformed.plusWeeks(1));
+                break;
+            case ANNUAL:
+                transaction.setNextDateToPerformTransaction(lastPerformed.plusYears(1));
+                break;
+        }
+
+        transactionRepository.save(transaction);
+    }
+
+    private void updateLastPerformed(Transaction transaction) {
+        transaction.setLastPerformed(LocalDate.now());
+        transactionRepository.save(transaction);
     }
 }
