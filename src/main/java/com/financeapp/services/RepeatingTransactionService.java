@@ -27,7 +27,7 @@ public class RepeatingTransactionService {
     @Autowired
     private TransactionService transactionService;
 
-    @Scheduled(cron = "* * * * * *")
+    @Scheduled(fixedRate = 60000*60)
     public void checkRepeatedTransactionsHaveBeenPerformed() throws Exception {
 
         LOGGER.info("Checking outstanding transactions");

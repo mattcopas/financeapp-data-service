@@ -18,4 +18,6 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 public interface AccountRepository extends PagingAndSortingRepository<Account, Long> {
 
     boolean existsById(Long id);
+
+    Account findOneByName(String s);
 }
