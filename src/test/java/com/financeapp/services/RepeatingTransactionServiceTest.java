@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
@@ -51,14 +52,14 @@ public class RepeatingTransactionServiceTest extends BaseTest {
                 "Test Account",
                 "Current",
                 "GBP",
-                0.0F,
+                new BigDecimal("0"),
                 user
         ));
 
         Transaction transaction = new Transaction(
                 "Test Repeating Transaction",
                 "Income",
-                100.0F,
+                new BigDecimal("100"),
                 accountToTest,
                 RepeatTransactionInterval.DAILY
         );

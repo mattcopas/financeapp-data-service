@@ -15,6 +15,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.math.BigDecimal;
 import java.net.URISyntaxException;
 import java.util.List;
 
@@ -40,7 +41,7 @@ public class TransactionRepositoryTest extends BaseTest {
     @Before
     public void setup() {
         account = accountRepository.save(new Account());
-        transaction = new Transaction("Test Transaction 1", "Income", 100.00F, account);
+        transaction = new Transaction("Test Transaction 1", "Income", new BigDecimal("100"), account);
         transaction = transactionRepository.save(transaction);
         accessToken = OAuth2TestUtils.getAccessToken(restTemplate);
         requestTestUtils = new RequestTestUtils(accessToken, restTemplate);
@@ -83,14 +84,14 @@ public class TransactionRepositoryTest extends BaseTest {
         transactionRepository.save(new Transaction(
                 "Test Non Repeating Transaction",
                 "Income",
-                100.0F,
+                new BigDecimal("100"),
                 savedAccount
         ));
 
         transactionRepository.save(new Transaction(
                 "Test Repeating Transaction",
                 "Income",
-                100.0F,
+                new BigDecimal("100"),
                 savedAccount,
                 RepeatTransactionInterval.WEEKLY
         ));
