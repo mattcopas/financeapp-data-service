@@ -26,6 +26,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.math.BigDecimal;
 import java.net.URISyntaxException;
 import java.security.Principal;
 
@@ -63,7 +64,7 @@ public class TransactionControllerTest extends BaseTest {
                 "Test Account",
                 "Current",
                 "GBP",
-                100.0F,
+                new BigDecimal("100"),
                 userRepository.findOneByUsername("test@test.com"))
         );
 
@@ -78,7 +79,7 @@ public class TransactionControllerTest extends BaseTest {
 
         Mockito.when(this.transactionService.performAccountTransaction(Matchers.any(TransactionDTO.class), Matchers.any(Principal.class))).thenThrow(AccountNotFoundException.class);
 
-        invalidTransactionDTO = new TransactionDTO("Test Transaction", "Income", 100.0F, 999);
+        invalidTransactionDTO = new TransactionDTO("Test Transaction", "Income", "100", 999);
         
         ResponseEntity response = requestTestUtils.sendAuthenticatedRequest(invalidTransactionDTO, HttpMethod.POST, "/transaction/add", String.class);
 
@@ -90,7 +91,7 @@ public class TransactionControllerTest extends BaseTest {
     public void addingATransactionShouldReturnAcceptedResponseCodeIfAValidAccountIdIsPassed() throws Exception {
 
         int id = account.getId().intValue();
-        validTransactionDTO = new TransactionDTO("Test Transaction", "Income", 100.0F, id);
+        validTransactionDTO = new TransactionDTO("Test Transaction", "Income", "100", id);
 
         Mockito.when(this.transactionService.performAccountTransaction(Matchers.any(TransactionDTO.class), Matchers.any(Principal.class))).thenReturn(true);
 
@@ -107,7 +108,7 @@ public class TransactionControllerTest extends BaseTest {
     @Test
     public void anExceptionShouldBeThrownIfTheAccountTransactionFailsWhenAddingATransaction() throws Exception {
         int id = account.getId().intValue();
-        invalidTransactionDTO = new TransactionDTO("Invalid Transaction", "InvalidType", 100.0F, id);
+        invalidTransactionDTO = new TransactionDTO("Invalid Transaction", "InvalidType", "100", id);
 
         Mockito.when(
             this.transactionService.performAccountTransaction(
@@ -132,7 +133,7 @@ public class TransactionControllerTest extends BaseTest {
     public void a404ResponseCodeShouldBeReturnedIfTransactionServiceThrowsTransactionNotFoundException() throws URISyntaxException {
 
         int id = account.getId().intValue();
-        validTransactionDTO = new TransactionDTO("Test Transaction", "Income", 100.0F, id);
+        validTransactionDTO = new TransactionDTO("Test Transaction", "Income", "100", id);
 
         Mockito.when(
                 this.transactionService.removeAccountTransaction(Matchers.anyLong(), Matchers.any(Principal.class))
@@ -152,7 +153,7 @@ public class TransactionControllerTest extends BaseTest {
     @Test
     public void shouldReturnA202ResponseCodeIfTheTransactionIsRemovedSuccessfully() throws URISyntaxException {
         int id = account.getId().intValue();
-        validTransactionDTO = new TransactionDTO("Test Transaction", "Income", 100.0F, id);
+        validTransactionDTO = new TransactionDTO("Test Transaction", "Income", "100", id);
 
         Mockito.when(
                 this.transactionService.removeAccountTransaction(Matchers.any(), Matchers.any(Principal.class))
@@ -197,7 +198,7 @@ public class TransactionControllerTest extends BaseTest {
     @Test
     public void test403IsReturnedIfEntityDoesNotBelongToUserExceptionIsThrownByTransactionService() throws Exception {
 
-        validTransactionDTO = new TransactionDTO("Test Transaction", "Income", 100.0F, account.getId().intValue());
+        validTransactionDTO = new TransactionDTO("Test Transaction", "Income", "100", account.getId().intValue());
 
         Mockito.when(
                 this.transactionService.performAccountTransaction(

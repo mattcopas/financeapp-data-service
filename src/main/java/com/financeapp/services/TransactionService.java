@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDate;
 
@@ -71,7 +72,7 @@ public class TransactionService {
         TransactionDTO transactionDTO = new TransactionDTO(
                 transaction.getName(),
                 transaction.getType(),
-                transaction.getAmount(),
+                transaction.getAmount().toString(),
                 transaction.getAccount().getId().intValue()
         );
 
@@ -131,7 +132,7 @@ public class TransactionService {
         Transaction transaction = new Transaction(
                 transactionDTO.getName(),
                 transactionDTO.getType(),
-                transactionDTO.getAmount(),
+                new BigDecimal(transactionDTO.getRawAmount()),
                 account
         );
 
@@ -159,22 +160,22 @@ public class TransactionService {
 
 
     private boolean updateAccountBalance(Account accountToUpdate, Transaction transaction, boolean rollback) {
-        float newAccountBalance;
+        BigDecimal newAccountBalance;
 
         switch(transaction.getType()) {
             case "Income":
                 if(rollback) {
-                    newAccountBalance = accountToUpdate.getBalance() - transaction.getAmount();
+                    newAccountBalance = accountToUpdate.getBalance().subtract(transaction.getAmount());
                 } else {
-                    newAccountBalance = accountToUpdate.getBalance() + transaction.getAmount();
+                    newAccountBalance = accountToUpdate.getBalance().add(transaction.getAmount());
                 }
                 accountToUpdate.setBalance(newAccountBalance);
                 break;
             case "Expense":
                 if(rollback) {
-                    newAccountBalance = accountToUpdate.getBalance() + transaction.getAmount();
+                    newAccountBalance = accountToUpdate.getBalance().add(transaction.getAmount());
                 } else {
-                    newAccountBalance = accountToUpdate.getBalance() - transaction.getAmount();
+                    newAccountBalance = accountToUpdate.getBalance().subtract(transaction.getAmount());
                 }
                 accountToUpdate.setBalance(newAccountBalance);
                 break;

@@ -3,6 +3,7 @@ package com.financeapp.enitities;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,7 +17,7 @@ public class Account extends BaseEntity {
         // Intentionally left blank, required by Hibernate
     }
 
-    public Account(String name, String type, String currency, float initialBalance, User user) {
+    public Account(String name, String type, String currency, BigDecimal initialBalance, User user) {
         this.name = name;
         this.type = type;
         this.currency = currency;
@@ -36,7 +37,7 @@ public class Account extends BaseEntity {
 
     private String currency;
 
-    private float balance;
+    private BigDecimal balance;
 
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Transaction> transactionList;
@@ -65,11 +66,11 @@ public class Account extends BaseEntity {
         this.currency = currency;
     }
 
-    public float getBalance() {
+    public BigDecimal getBalance() {
         return balance;
     }
 
-    public void setBalance(float balance) {
+    public void setBalance(BigDecimal balance) {
         this.balance = balance;
     }
 

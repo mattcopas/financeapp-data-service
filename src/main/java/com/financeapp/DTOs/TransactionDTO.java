@@ -7,15 +7,15 @@ public class TransactionDTO {
 
     private String name;
     private String type;
-    private float amount;
+    private String rawAmount;
     private int accountId;
 
     public TransactionDTO () {}
 
-    public TransactionDTO(String name, String type, float amount, int accountId) {
+    public TransactionDTO(String name, String type, String rawAmount, int accountId) {
         this.name = name;
         this.type = type;
-        this.amount = amount;
+        this.rawAmount = rawAmount;
         this.accountId = accountId;
     }
 
@@ -35,12 +35,12 @@ public class TransactionDTO {
         this.type = type;
     }
 
-    public float getAmount() {
-        return amount;
+    public String getRawAmount() {
+        return rawAmount;
     }
 
-    public void setAmount(float amount) {
-        this.amount = amount;
+    public void setRawAmount(String rawAmount) {
+        this.rawAmount = rawAmount;
     }
 
     public int getAccountId() {

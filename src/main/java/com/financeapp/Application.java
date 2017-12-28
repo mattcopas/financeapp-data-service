@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,7 +44,7 @@ public class Application {
 			User savedUser = userRepository.save(userToAdd);
 
 
-			Account accountToAdd = new Account("Test Account 1", "Current", "GBP", 100.0F, savedUser);
+			Account accountToAdd = new Account("Test Account 1", "Current", "GBP", new BigDecimal("100"), savedUser);
 
 			accountRepository.save(accountToAdd);
 

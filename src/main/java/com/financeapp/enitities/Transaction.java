@@ -5,6 +5,7 @@ import com.financeapp.enums.RepeatTransactionInterval;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
@@ -17,7 +18,7 @@ public class Transaction extends BaseEntity {
         // Intentionally left blank, required by Hibernate
     }
 
-    public Transaction(String name, String type, float amount, Account account) {
+    public Transaction(String name, String type, BigDecimal amount, Account account) {
         this.name = name;
         this.type = type;
         this.amount = amount;
@@ -30,7 +31,7 @@ public class Transaction extends BaseEntity {
     public Transaction(
             String name,
             String type,
-            float amount,
+            BigDecimal amount,
             Account account,
             RepeatTransactionInterval repeatTransactionInterval
     ) {
@@ -61,7 +62,7 @@ public class Transaction extends BaseEntity {
     // TODO Convert to enum
     private String type;
 
-    private float amount;
+    private BigDecimal amount;
 
     @ManyToOne(fetch = FetchType.EAGER)
     private Account account;
@@ -86,11 +87,11 @@ public class Transaction extends BaseEntity {
         this.type = type;
     }
 
-    public float getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 
-    public void setAmount(float amount) {
+    public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
 

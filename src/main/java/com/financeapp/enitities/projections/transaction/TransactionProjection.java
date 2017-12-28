@@ -6,6 +6,8 @@ import com.financeapp.enitities.projections.account.AccountNameProjection;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.rest.core.config.Projection;
 
+import java.math.BigDecimal;
+
 /**
  * Created by Matt on 21/05/2017.
  */
@@ -15,6 +17,6 @@ public interface TransactionProjection {
     Long getId();
     String getName();
     String getType();
-    float getAmount();
+    BigDecimal getAmount();
     Account getAccount();
 }

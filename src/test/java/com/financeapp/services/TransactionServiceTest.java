@@ -18,6 +18,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.security.Principal;
 
 import static java.time.temporal.ChronoUnit.DAYS;
@@ -44,7 +46,7 @@ public class TransactionServiceTest extends BaseTest {
     private Account accountToTest;
     private Long accountId;
 
-    private final float INITIAL_ACCOUNT_BALANCE = 100.0F;
+    private final BigDecimal INITIAL_ACCOUNT_BALANCE = new BigDecimal("100");
 
     private Principal principal;
 
@@ -64,7 +66,7 @@ public class TransactionServiceTest extends BaseTest {
         TransactionDTO transactionDTO = new TransactionDTO(
                 "Test Income Transaction",
                 "Income",
-                50.00F,
+                "50",
                 accountToTest.getId().intValue()
         );
 
@@ -72,7 +74,10 @@ public class TransactionServiceTest extends BaseTest {
 
         Account updatedAccount = accountRepository.findOne(accountId);
 
-        Assert.assertEquals("Balance should be increased to 150.00", 150.00F, updatedAccount.getBalance(), 0);
+        Assert.assertEquals("Balance should be increased to 150.00",
+                new BigDecimal("150").setScale(2, RoundingMode.HALF_UP),
+                updatedAccount.getBalance()
+        );
     }
 
     @Test
@@ -81,7 +86,7 @@ public class TransactionServiceTest extends BaseTest {
         TransactionDTO transactionDTO = new TransactionDTO(
                 "Test Transaction Added to Account",
                 "Expense",
-                10.00F,
+                "100",
                 accountToTest.getId().intValue()
         );
 
@@ -96,7 +101,7 @@ public class TransactionServiceTest extends BaseTest {
         TransactionDTO transactionDTO = new TransactionDTO(
                 "Test Expense Transaction",
                 "Expense",
-                50.00F,
+                "50",
                 accountToTest.getId().intValue()
         );
 
@@ -104,7 +109,10 @@ public class TransactionServiceTest extends BaseTest {
 
         Account updatedAccount = accountRepository.findOne(accountId);
 
-        Assert.assertEquals("Balance should be decreased to 50.00", 50.00F, updatedAccount.getBalance(), 0);
+        Assert.assertEquals("Balance should be decreased to 50.00",
+                new BigDecimal("50").setScale(2, RoundingMode.HALF_UP),
+                updatedAccount.getBalance()
+        );
     }
 
     @Test
@@ -113,7 +121,7 @@ public class TransactionServiceTest extends BaseTest {
         TransactionDTO transactionToSaveDTO = new TransactionDTO(
                 "Test Transaction To Save",
                 "Income",
-                10.0F,
+                "10",
                 accountToTest.getId().intValue()
         );
 
@@ -131,7 +139,7 @@ public class TransactionServiceTest extends BaseTest {
         TransactionDTO invalidTransactionDTO = new TransactionDTO(
                 "Invalid Transaction",
                 "Invalid type",
-                10.0F,
+                "10",
                 accountToTest.getId().intValue()
         );
 
@@ -144,13 +152,15 @@ public class TransactionServiceTest extends BaseTest {
         TransactionDTO invalidTransactionDTO = new TransactionDTO(
                 "Invalid Transaction",
                 "Invalid type",
-                10.0F,
+                "10",
                 accountToTest.getId().intValue()
         );
 
         transactionService.performAccountTransaction(invalidTransactionDTO, principal);
 
-        Assert.assertEquals("The account balance should remain the same", 100.00F, accountRepository.findOne(accountId).getBalance(), 0);
+        Assert.assertEquals("The account balance should remain the same",
+                new BigDecimal("100"),
+                accountRepository.findOne(accountId).getBalance());
     }
 
     @Test
@@ -159,7 +169,7 @@ public class TransactionServiceTest extends BaseTest {
         TransactionDTO transactionToRemoveDTO = new TransactionDTO(
                 "Test Transaction To Remove",
                 "Income",
-                50.0F,
+                "50",
                 accountToTest.getId().intValue()
         );
 
@@ -179,7 +189,7 @@ public class TransactionServiceTest extends BaseTest {
         TransactionDTO transactionToRemoveDTO = new TransactionDTO(
                 "Test Transaction To Remove",
                 "Income",
-                50.0F,
+                "50",
                 accountToTest.getId().intValue()
         );
 
@@ -191,7 +201,10 @@ public class TransactionServiceTest extends BaseTest {
 
         Account updatedAccount = accountRepository.findOne(accountToTest.getId());
 
-        Assert.assertEquals("The account balance should decrease to 100.0F", 100.0F, updatedAccount.getBalance(), 0);
+        Assert.assertEquals("The account balance should decrease to 100.0F",
+                new BigDecimal("100").setScale(2, RoundingMode.HALF_UP),
+                updatedAccount.getBalance()
+        );
     }
 
     @Test
@@ -200,7 +213,7 @@ public class TransactionServiceTest extends BaseTest {
         TransactionDTO transactionToRemoveDTO = new TransactionDTO(
                 "Test Transaction To Remove",
                 "Expense",
-                50.0F,
+                "50",
                 accountToTest.getId().intValue()
         );
 
@@ -212,12 +225,15 @@ public class TransactionServiceTest extends BaseTest {
 
         Account updatedAccount = accountRepository.findOne(accountToTest.getId());
 
-        Assert.assertEquals("The account balance should decrease to 100.0F", 100.0F, updatedAccount.getBalance(), 0);
+        Assert.assertEquals("The account balance should decrease to 100.0F",
+                new BigDecimal("100").setScale(2, RoundingMode.HALF_UP),
+                updatedAccount.getBalance()
+        );
     }
 
     @Test(expected = AccountNotFoundException.class)
     public void testAccountNotFoundExceptionIsThrownIfANonExistentAccountIsProvided() throws Exception {
-        TransactionDTO transactionDTO = new TransactionDTO("Test Transaction", "Income", 100.0F, 999);
+        TransactionDTO transactionDTO = new TransactionDTO("Test Transaction", "Income", "100", 999);
         transactionService.performAccountTransaction(transactionDTO, principal);
     }
 
@@ -227,7 +243,7 @@ public class TransactionServiceTest extends BaseTest {
         TransactionDTO transactionDTO = new TransactionDTO(
                 "Test Transaction",
                 "Income",
-                100.0F,
+                "100",
                 accountToTest.getId().intValue()
         );
 
@@ -247,7 +263,7 @@ public class TransactionServiceTest extends BaseTest {
         Transaction transactionToRemove = transactionRepository.save(new Transaction(
                 "Test Transaction",
                 "Income",
-                100.0F,
+                new BigDecimal("100"),
                 accountToTest
         ));
 
@@ -260,7 +276,7 @@ public class TransactionServiceTest extends BaseTest {
         Transaction repeatingTransaction = transactionRepository.save(new Transaction(
                 "Test Transaction",
                 "Income",
-                100.0F,
+                new BigDecimal("100"),
                 accountToTest,
                 RepeatTransactionInterval.DAILY
         ));
@@ -280,7 +296,7 @@ public class TransactionServiceTest extends BaseTest {
         Transaction repeatingTransaction = transactionRepository.save(new Transaction(
                 "Test Transaction",
                 "Income",
-                100.0F,
+                new BigDecimal("100"),
                 accountToTest,
                 RepeatTransactionInterval.DAILY
         ));
@@ -304,7 +320,7 @@ public class TransactionServiceTest extends BaseTest {
         Transaction repeatingTransaction = transactionRepository.save(new Transaction(
                 "Test Transaction",
                 "Income",
-                100.0F,
+                new BigDecimal("100"),
                 accountToTest,
                 RepeatTransactionInterval.WEEKLY
         ));
@@ -328,7 +344,7 @@ public class TransactionServiceTest extends BaseTest {
         Transaction repeatingTransaction = transactionRepository.save(new Transaction(
                 "Test Transaction",
                 "Income",
-                100.0F,
+                new BigDecimal("100"),
                 accountToTest,
                 RepeatTransactionInterval.ANNUAL
         ));
