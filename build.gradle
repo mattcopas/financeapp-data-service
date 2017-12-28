@@ -24,7 +24,7 @@ apply plugin: 'docker'
 apply plugin: 'com.palantir.jacoco-full-report'
 
 group = 'mattcopas'
-version = '0.0.11'
+version = '0.0.12'
 sourceCompatibility = 1.8
 
 repositories {
