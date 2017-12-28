@@ -1,6 +1,6 @@
 # README #
 
-This project is currently a Work In Progress
+[![Build Status](https://travis-ci.org/mattcopas/financeapp-data-service.svg?branch=add-oauth2-security)](https://travis-ci.org/mattcopas/financeapp-data-service)
 
 ### What is this repository for? ###
 
