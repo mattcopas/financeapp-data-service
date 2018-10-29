@@ -31,4 +31,4 @@ curl -X POST
 
 ### Who do I talk to? ###
 
-* Please raise an issue if you have any questions
+* Please raise an issue if you have a question
