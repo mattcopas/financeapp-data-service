@@ -31,5 +31,4 @@ curl -X POST
 
 ### Who do I talk to? ###
 
-* Matt Copas
 * Please raise an issue if you have any questions
